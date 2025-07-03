@@ -1,0 +1,622 @@
+/* --- General Reset & Modern Defaults --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif; /* Modern Font */
+  line-height: 1.6;
+  background-color: #f4f7f6; /* Lighter, softer background */
+  color: #333;
+}
+
+/* --- Modern Header --- */
+.header {
+  background-color: #00796b; /* Main brand color */
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between; /* Key for positioning */
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+.header-left .menu-icon {
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.header-center h1 {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0; /* Remove default margin */
+}
+
+.header-right .login-button {
+  background-color: #ffffff;
+  color: #00796b;
+  padding: 8px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.header-right .login-button:hover {
+  background-color: #e0f2f1;
+}
+
+/* --- Sidebar (Styles are mostly the same, with minor tweaks) --- */
+.sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  background-color: #004d40;
+  overflow-x: hidden;
+  transition: 0.3s;
+  padding-top: 60px;
+}
+
+.sidebar a {
+  padding: 12px 20px;
+  text-decoration: none;
+  font-size: 18px;
+  color: white;
+  display: block;
+  transition: 0.2s;
+}
+
+.sidebar a:hover {
+  background-color: #00695c;
+}
+
+.sidebar .closebtn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 36px;
+}
+
+.sidebar.active {
+  width: 260px; /* Slightly wider */
+}
+
+/* --- Main Content Area --- */
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.content-card {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 800px;
+}
+
+.content-card h2 {
+  color: #004d40;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.content-card p {
+  font-size: 16px;
+  color: #555;
+}
+
+/* --- Location Page Table Styles --- */
+.location-table {
+  margin: 20px auto;
+  border-collapse: collapse;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  overflow: hidden; /* Important for border-radius on tables */
+}
+
+.location-table th,
+.location-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.location-table th {
+  background-color: #e0f2f1;
+  color: #004d40;
+  font-weight: 600;
+}
+
+.location-table td a {
+  color: #00796b;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 5px 10px;
+  border: 1px solid #00796b;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.location-table td a:hover {
+    background-color: #00796b;
+    color: white;
+}
+
+/* --- Footer --- */
+footer {
+  background: #004d40;
+  color: white;
+  text-align: center;
+  padding: 20px 0;
+  font-size: 14px;
+  margin-top: 40px;
+}
+/* --- New Styles for index.php --- */
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.welcome-section h2 {
+    color: #004d40;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.welcome-section p {
+    color: #555;
+    font-size: 16px;
+}
+
+.info-cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px; /* Space between cards */
+    flex-wrap: wrap; /* Allows cards to wrap on smaller screens */
+    padding: 0 20px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    width: 300px;
+    padding: 25px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.info-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.info-card img {
+    height: 60px;
+    margin-bottom: 20px;
+}
+
+.info-card h3 {
+    color: #004d40;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.info-card p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.read-more-btn {
+    background-color: #00796b;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.read-more-btn:hover {
+    background-color: #004d40;
+}
+
+/* --- New Styles for Hero Section --- */
+.hero-section {
+    background-color: #e0f2f1; /* A light teal background */
+    /* For a more advanced look, you can use a background image: */
+    /* background-image: linear-gradient(rgba(0, 121, 107, 0.7), rgba(0, 121, 107, 0.7)), url('../img/hero-background.jpg'); */
+    /* background-size: cover; */
+    /* background-position: center; */
+    padding: 80px 20px;
+    text-align: center;
+    color: #004d40;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    margin-bottom: 30px;
+    font-weight: 400;
+}
+
+.hero-button {
+    background-color: #00796b;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.3s;
+    display: inline-block;
+}
+
+.hero-button:hover {
+    background-color: #004d40;
+    transform: translateY(-3px);
+}
+
+
+/* --- Spacing Adjustment for Main Content --- */
+.main-content {
+    padding-top: 60px; /* More space between Hero and cards */
+}
+
+
+/* --- New Styles for Enhanced Footer --- */
+/* Remove old footer style */
+footer {
+    display: none;
+}
+
+.enhanced-footer {
+    background-color: #004d40;
+    color: #e0f2f1;
+    padding-top: 40px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    gap: 20px;
+}
+
+.footer-column {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: 20px;
+}
+
+.footer-column h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: white;
+    border-bottom: 2px solid #00796b;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.footer-column p {
+    line-height: 1.7;
+    color: #b2dfdb; /* Lighter text color */
+}
+
+.footer-column ul {
+    list-style: none;
+}
+
+.footer-column ul li {
+    margin-bottom: 10px;
+}
+
+.footer-column ul li a {
+    color: #b2dfdb;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-column ul li a:hover {
+    color: white;
+}
+
+.footer-bottom {
+    background-color: #00251a; /* Even darker shade */
+    text-align: center;
+    padding: 15px 0;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+/* --- Styles for Appointment Booking Form --- */
+.booking-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.booking-form {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* --- Improved Form Input Styles --- */
+.form-group select,
+.form-group input[type="date"],
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="tel"] {
+    padding: 15px; /* Increased padding */
+    border: 1px solid #ccc;
+    border-radius: 8px; /* More rounded corners */
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    background-color: #f9f9f9; /* Slightly off-white background */
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Add a nice focus effect */
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: #00796b; /* Main green color */
+    box-shadow: 0 0 5px rgba(0, 121, 107, 0.5);
+}
+
+.form-group button {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+}
+
+/* --- Style for the active link in the sidebar --- */
+.sidebar a.active {
+    background-color: #00796b; /* Same color as hover */
+    font-weight: 600;
+}
+
+/* --- Styles for find_slots.php --- */
+.slots-container {
+    margin-top: 20px;
+}
+
+.doctor-slots {
+    margin-bottom: 30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.doctor-slots h3 {
+    color: #004d40;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0f2f1;
+}
+
+.time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.time-slot-btn {
+    background-color: #00796b;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.time-slot-btn:hover {
+    background-color: #004d40;
+    transform: scale(1.05);
+}
+
+.no-slots {
+    color: #888;
+    font-style: italic;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.back-button {
+    display: inline-block;
+    margin-top: 20px;
+    color: #00796b;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* --- Styles for confirm_booking.php --- */
+.booking-summary {
+    background-color: #f4f7f6;
+    border-left: 5px solid #00796b;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 0 8px 8px 0;
+}
+
+.booking-summary p {
+    margin: 5px 0;
+    font-size: 16px;
+}
+.booking-summary p strong {
+    color: #004d40;
+}
+
+/* You can add this if needed, or modify the existing rule */
+.select-btn {
+  color: #00796b;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 5px 10px;
+  border: 1px solid #00796b;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.select-btn:hover {
+    background-color: #00796b;
+    color: white;
+}
+
+/* --- Styles for Navigation Links on Forms --- */
+.navigation-links {
+    display: flex;
+    justify-content: space-between; /* Pushes "Go Back" and "Home" to opposite sides */
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0; /* Adds a nice separator line */
+}
+
+/* This targets the single "Home" link on the appointment page to center it */
+.navigation-links:has(:first-child:last-child) {
+    justify-content: center;
+}
+
+/* --- New Styles for Unified Login/Register Page --- */
+
+.error-message {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #ffdddd;
+    border-left: 5px solid #f44336;
+    text-align: left;
+}
+
+.success-message {
+    color: #004d40;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #e0f2f1;
+    border-left: 5px solid #00796b;
+    text-align: left;
+}
+
+.form-divider {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    line-height: 0.1em;
+    margin: 30px 0;
+}
+
+.form-divider span {
+    background: #fff;
+    padding: 0 10px;
+    color: #777;
+}
+
+.secondary-action {
+    text-align: center;
+    width: 100%;
+}
+
+.secondary-action p {
+    color: #555;
+    margin: 0 0 15px 0;
+}
+
+.secondary-button {
+    display: inline-block;
+    padding: 10px 25px;
+    background-color: #fff;
+    color: #00796b;
+    border: 1px solid #00796b;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.secondary-button:hover {
+    background-color: #00796b;
+    color: #fff;
+}
+
+/* --- Home Icon Button on Forms --- */
+.content-card {
+    position: relative; /* This is needed for the child's absolute positioning */
+}
+
+.home-icon-link {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    text-decoration: none;
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+.home-icon-link:hover {
+    color: #00796b;
+}
+
+/* --- Styles for Emergency Page --- */
+.phone-link {
+    font-weight: 600;
+    color: #00796b;
+    text-decoration: none;
+    display: inline-block;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.phone-link:hover {
+    background-color: #e0f2f1;
+    text-decoration: underline;
+}

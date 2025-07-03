@@ -1,136 +1,111 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once 'db_conn.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Our Project Hub</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap');
-        :root {
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --radius: 1rem;
-            --main-color: #4a90e2;
-        }
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-            font-family: 'Montserrat', sans-serif;
-            color: #1a1a1a;
-        }
-        body {
-            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: url('images/background-pattern.png') center/cover no-repeat;
-            opacity: 0.15;
-            filter: blur(2px);
-            z-index: -1;
-        }
-        header {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        header h1 {
-            font-weight: 600;
-            font-size: 2.75rem;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        header p {
-            font-size: 1.2rem;
-            color: #f4f4f4;
-            margin-top: 0.5rem;
-        }
-        .team-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2rem auto;
-            flex-direction: column;
-        }
-        .team-image {
-            width: 280px;
-            height: auto;
-            border-radius: 1rem;
-            object-fit: contain;
-            border: 6px solid white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
-            width: 90%;
-            max-width: 1200px;
-            margin: 2rem auto;
-        }
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            text-decoration: none;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
-        }
-        .card img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 1.25rem;
-        }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        .card p {
-            font-size: 0.95rem;
-            color: #555;
-        }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #ffffffcc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clinic Portal</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Project Showcase</h1>
-        <p>Explore our featured projects and meet our wonderful team</p>
-    </header>
 
-    <section class="team-section">
-        <img class="team-image" src="images/kamiGeng.jpeg" alt="Team Member">
-        <p style="margin-top: 1rem; font-weight: 600; color: white;">Student BITD Gempak</p>
-    </section>
+  <header class="header">
+    <div class="header-left">
+      <span class="menu-icon" onclick="toggleSidebar()">☰</span>
+    </div>
+    <div class="header-center">
+      <h1>Clinic System Portal</h1>
+    </div>
+    <div class="header-right">
+      <a href="login.php" class="login-button">Login</a>
+    </div>
+  </header>
 
-    <main class="grid">
- 
- 
- 
-    </main>
+  <div id="sidebar" class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">×</a>
+    <a href="index.php">Home</a>
+    <a href="location.php">Find Clinic</a>
+    <a href="appointment.php">Appointments</a>
+    <a href="login.php">Medical Records</a>
+    <a href="emergency.php">Contact Us</a>
+  </div>
 
-    <footer>
-        &copy; <?= date('Y') ?> Project Team. All rights reserved.
-    </footer>
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Your Health, Your Control</h1>
+      <p class="hero-subtitle">Book appointments and access your medical records seamlessly.</p>
+      <a href="location.php" class="hero-button">Find a Clinic Near You</a>
+    </div>
+  </section>
+  
+  <div class="main-content">
+    <div class="welcome-section">
+        <h2>General Health Information</h2>
+        <p>Explore common health topics and stay informed.</p>
+    </div>
+
+    <div class="info-cards-container">
+        <?php
+            $sql = "SELECT Title, Summary, ImagePath FROM HealthArticles LIMIT 3";
+            $result = $conn->query($sql);
+            if ($result && $result->num_rows > 0) {
+                while($row = $result->fetch_assoc()) {
+                    echo '<div class="info-card">';
+                    echo '  <img src="' . htmlspecialchars($row["ImagePath"]) . '" alt="' . htmlspecialchars($row["Title"]) . '">';
+                    echo '  <h3>' . htmlspecialchars($row["Title"]) . '</h3>';
+                    echo '  <p>' . htmlspecialchars($row["Summary"]) . '</p>';
+                    echo '  <a href="#" class="read-more-btn">Read More</a>';
+                    echo '</div>';
+                }
+            } else {
+                echo "<p>No health articles found.</p>";
+            }
+        ?>
+    </div>
+  </div>
+
+  <footer class="enhanced-footer">
+    <div class="footer-container">
+      <div class="footer-column">
+        <h3>Clinic System</h3>
+        <p>Providing seamless access to healthcare services for everyone.</p>
+      </div>
+      <div class="footer-column">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="index.php">Home</a></li>
+          <li><a href="location.php">Find Clinic</a></li>
+          <!-- THE FIX IS HERE -->
+          <li><a href="login.php">Patient Login</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3>Contact Info</h3>
+        <p>123 Medical Avenue,<br>Melaka, 75450, Malaysia</p>
+        <p>Phone: (06) 123-4567</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Clinic System. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+  </script>
+
 </body>
 </html>
