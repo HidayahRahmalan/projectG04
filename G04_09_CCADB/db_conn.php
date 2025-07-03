@@ -2,9 +2,9 @@
 // --- Database Connection File ---
 
 $servername = "localhost";
-$username   = "b032210266";
-$password   = "021130010593";
-$dbname     = "student_b032210266";
+$username   = "ahza";
+$password   = "abc123";
+$dbname     = "p25_CCADB";
 
 // Create Connection using MySQLi
 $conn = new mysqli($servername, $username, $password, $dbname);
