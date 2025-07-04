@@ -1,136 +1,226 @@
+<?php
+session_start();
+include 'connection.php';
+include 'navbar.php';
+
+// Protect page: only allow logged-in admin
+if (!isset($_SESSION['staffID']) || $_SESSION['role'] !== 'Admin') {
+  header("Location: login.php");
+  exit();
+}
+// Fetch workload analytics
+$statusCounts = [
+  'Reported' => 0,
+  'Awaiting Repair' => 0,
+  'In Progress' => 0,
+  'Pending Approval' => 0,
+  'Completed' => 0
+];
+
+$analyticsSql = "SELECT Status, COUNT(*) as count FROM report GROUP BY Status";
+$analyticsResult = $conn->query($analyticsSql);
+if ($analyticsResult) {
+  while ($row = $analyticsResult->fetch_assoc()) {
+    $status = $row['Status'];
+    if (isset($statusCounts[$status])) {
+      $statusCounts[$status] = $row['count'];
+    }
+  }
+}
+
+
+// Fetch all reports with related staff and category info
+
+$filter = isset($_GET['filter']) ? $_GET['filter'] : '';
+$where = '';
+if ($filter && isset($statusCounts[$filter])) {
+  $where = "WHERE r.Status = '" . $conn->real_escape_string($filter) . "'";
+}
+
+$sql = "
+    SELECT r.ReportID, r.Title, r.UrgencyLevel, r.Status, r.CreatedDate, 
+           s.StaffName, c.CategoryType
+    FROM Report r
+    JOIN Staff s ON r.StaffID = s.StaffID
+    JOIN Category c ON r.CategoryID = c.CategoryID
+    $where
+    ORDER BY r.CreatedDate DESC
+";
+$result = $conn->query($sql);
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Our Project Hub</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap');
-        :root {
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --radius: 1rem;
-            --main-color: #4a90e2;
-        }
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-            font-family: 'Montserrat', sans-serif;
-            color: #1a1a1a;
-        }
-        body {
-            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: url('images/background-pattern.png') center/cover no-repeat;
-            opacity: 0.15;
-            filter: blur(2px);
-            z-index: -1;
-        }
-        header {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        header h1 {
-            font-weight: 600;
-            font-size: 2.75rem;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        header p {
-            font-size: 1.2rem;
-            color: #f4f4f4;
-            margin-top: 0.5rem;
-        }
-        .team-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2rem auto;
-            flex-direction: column;
-        }
-        .team-image {
-            width: 280px;
-            height: auto;
-            border-radius: 1rem;
-            object-fit: contain;
-            border: 6px solid white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
-            width: 90%;
-            max-width: 1200px;
-            margin: 2rem auto;
-        }
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            text-decoration: none;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
-        }
-        .card img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 1.25rem;
-        }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        .card p {
-            font-size: 0.95rem;
-            color: #555;
-        }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #ffffffcc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - Reports</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #2c3e50, #4b6584);
+      margin: 0;
+      padding: 30px;
+      color: #34495e;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #f39c12;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ecf0f1;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    th,
+    td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #bdc3c7;
+    }
+
+    th {
+      background: #f39c12;
+      color: white;
+    }
+
+    tr:hover {
+      background: #d88e0a;
+      color: white;
+      cursor: pointer;
+    }
+
+    a.report-link {
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    a.report-link:hover {
+      text-decoration: underline;
+    }
+
+    .analytics {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .analytic-box {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+      padding: 20px 30px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .analytic-box .count {
+      display: block;
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #f39c12;
+    }
+
+    .analytic-box .label {
+      font-size: 1em;
+      color: #34495e;
+    }
+
+    .analytic-box.pending {
+      border-top: 5px solid #e74c3c;
+    }
+
+    .analytic-box.awaiting {
+      border-top: 5px solid #f1c40f;
+    }
+
+    .analytic-box.inprogress {
+      border-top: 5px solid #2980b9;
+    }
+
+    .analytic-box.completed {
+      border-top: 5px solid #27ae60;
+    }
+  </style>
 </head>
+
 <body>
-    <header>
-        <h1>Welcome to Our Project Showcase</h1>
-        <p>Explore our featured projects and meet our wonderful team</p>
-    </header>
 
-    <section class="team-section">
-        <img class="team-image" src="images/kamiGeng.jpeg" alt="Team Member">
-        <p style="margin-top: 1rem; font-weight: 600; color: white;">Student BITD Gempak</p>
-    </section>
+  <h1>Admin Dashboard - Maintenance Reports</h1>
 
-    <main class="grid">
- 
- 
- 
-    </main>
+  <div class="analytics">
+    <a href="?filter=Reported" class="analytic-box reported">
+      <span class="count"><?php echo $statusCounts['Reported']; ?></span>
+      <span class="label">Reported</span>
+    </a>
+      <a href="?filter=Awaiting Repair" class="analytic-box awaiting">
+      <span class="count"><?php echo $statusCounts['Awaiting Repair']; ?></span>
+      <span class="label">Awaiting Repair</span>
+    </a>
+    <a href="?filter=In Progress" class="analytic-box inprogress">
+      <span class="count"><?php echo $statusCounts['In Progress']; ?></span>
+      <span class="label">In Progress</span>
+    </a>
+    <a href="?filter=Pending Approval" class="analytic-box pending">
+      <span class="count"><?php echo $statusCounts['Pending Approval']; ?></span>
+      <span class="label">Pending Approval</span>
+    </a>
+    <a href="?filter=Completed" class="analytic-box completed">
+      <span class="count"><?php echo $statusCounts['Completed']; ?></span>
+      <span class="label">Completed</span>
+    </a>
+  </div>
 
-    <footer>
-        &copy; <?= date('Y') ?> Project Team. All rights reserved.
-    </footer>
+
+
+  <table>
+    <thead>
+      <tr>
+        <th>Report ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Urgency</th>
+        <th>Status</th>
+        <th>Reported By</th>
+        <th>Created Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if ($result && $result->num_rows > 0): ?>
+        <?php while ($row = $result->fetch_assoc()): ?>
+          <tr>
+            <td><?php echo htmlspecialchars($row['ReportID']); ?></td>
+            <td><a class="report-link" href="report_detail.php?report_id=<?php echo urlencode($row['ReportID']); ?>">
+                <?php echo htmlspecialchars($row['Title']); ?></a></td>
+            <td><?php echo htmlspecialchars($row['CategoryType']); ?></td>
+            <td><?php echo htmlspecialchars($row['UrgencyLevel']); ?></td>
+            <td><?php echo htmlspecialchars($row['Status']); ?></td>
+            <td><?php echo htmlspecialchars($row['StaffName']); ?></td>
+            <td><?php echo htmlspecialchars($row['CreatedDate']); ?></td>
+          </tr>
+        <?php endwhile; ?>
+      <?php else: ?>
+        <tr>
+          <td colspan="7" style="text-align:center;">No reports found.</td>
+        </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+
+
+
 </body>
+
 </html>
