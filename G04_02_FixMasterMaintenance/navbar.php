@@ -109,6 +109,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <!-- Admin Links -->
     <a href="index.php" class="<?php echo $currentPage === 'index.php' ? 'active' : ''; ?>">Dashboard</a>
     <a href="report_analytics.php" class="<?php echo $currentPage === 'report_analytics.php' ? 'active' : ''; ?>">Analytics</a>
+    <!-- ===== NEW LINK ADDED HERE ===== -->
+    <a href="about_us.php" class="<?php echo $currentPage === 'about_us.php' ? 'active' : ''; ?>">About Us</a>
   
   <?php else: ?>
     <!-- Maintenance Staff / Other Links -->
