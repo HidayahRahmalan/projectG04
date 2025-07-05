@@ -1,6 +1,6 @@
 <?php
 $servername = "localhost";
-$username = "root";
+$username = "group2";
 $password = "@Lyana2003";
 $dbname = "p25_MaintenanceDB";
 
