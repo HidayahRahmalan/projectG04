@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
 $username = "root";
-$password = "@Lyana2003";
+$password = "";
 $dbname = "p25_MaintenanceDB";
 
 // Create connection
