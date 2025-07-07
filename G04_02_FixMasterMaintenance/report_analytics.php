@@ -96,25 +96,30 @@ $staffData = [];
 // This query finds the last assigned staff for each active report
 // --- THIS IS THE CORRECTED CODE ---
 // Replaces the query that uses 'WITH' with a compatible derived table
+// --- THIS IS THE FINAL, MOST COMPATIBLE VERSION ---
+// Replaces the query to work on very old MySQL versions without window functions.
+
 $staffWorkloadSql = "
-    SELECT 
-        s.StaffName, 
-        COUNT(las.ReportID) as report_count
-    FROM (
-        -- This subquery does the same job as the WITH clause
+    SELECT
+        s.StaffName,
+        COUNT(msl.ReportID) as report_count
+    FROM maintenancestatuslog msl
+    JOIN (
+        -- Subquery to find the exact time of the latest log entry for each active report
         SELECT 
-            msl.ReportID,
-            msl.StaffID,
-            ROW_NUMBER() OVER(PARTITION BY msl.ReportID ORDER BY msl.DateTime DESC) as rn
-        FROM MaintenanceStatusLog msl
-        JOIN Report r ON msl.ReportID = r.ReportID
+            msl_inner.ReportID, 
+            MAX(msl_inner.DateTime) AS MaxDateTime
+        FROM maintenancestatuslog msl_inner
+        JOIN Report r ON msl_inner.ReportID = r.ReportID
         WHERE r.Status IN ('Awaiting Repair', 'In Progress', 'Pending Approval')
-    ) AS las
-    JOIN Staff s ON las.StaffID = s.StaffID
-    WHERE las.rn = 1
+        GROUP BY msl_inner.ReportID
+    ) AS latest_logs ON msl.ReportID = latest_logs.ReportID AND msl.DateTime = latest_logs.MaxDateTime
+    JOIN staff s ON msl.StaffID = s.StaffID
     GROUP BY s.StaffName
     ORDER BY report_count DESC;
 ";
+
+// --- END OF CORRECTION ---
 // --- END OF CORRECTION ---
 $staffResult = $conn->query($staffWorkloadSql);
 if ($staffResult) {
