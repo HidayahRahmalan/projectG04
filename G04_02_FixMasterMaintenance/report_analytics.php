@@ -94,8 +94,14 @@ if ($resolutionResult && $row = $resolutionResult->fetch_assoc()) {
 $staffLabels = [];
 $staffData = [];
 // This query finds the last assigned staff for each active report
+// --- THIS IS THE CORRECTED CODE ---
+// Replaces the query that uses 'WITH' with a compatible derived table
 $staffWorkloadSql = "
-    WITH LastAssignedStaff AS (
+    SELECT 
+        s.StaffName, 
+        COUNT(las.ReportID) as report_count
+    FROM (
+        -- This subquery does the same job as the WITH clause
         SELECT 
             msl.ReportID,
             msl.StaffID,
@@ -103,16 +109,13 @@ $staffWorkloadSql = "
         FROM MaintenanceStatusLog msl
         JOIN Report r ON msl.ReportID = r.ReportID
         WHERE r.Status IN ('Awaiting Repair', 'In Progress', 'Pending Approval')
-    )
-    SELECT 
-        s.StaffName, 
-        COUNT(las.ReportID) as report_count
-    FROM LastAssignedStaff las
+    ) AS las
     JOIN Staff s ON las.StaffID = s.StaffID
     WHERE las.rn = 1
     GROUP BY s.StaffName
     ORDER BY report_count DESC;
 ";
+// --- END OF CORRECTION ---
 $staffResult = $conn->query($staffWorkloadSql);
 if ($staffResult) {
     while ($row = $staffResult->fetch_assoc()) {
