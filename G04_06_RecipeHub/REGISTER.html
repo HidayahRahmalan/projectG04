@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Online Cooking Tutorial Database</title>
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --dark-color: #292F36;
+            --light-color: #F7FFF7;
+            --accent-color: #FFE66D;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            background-color: rgba(247, 255, 247, 0.9);
+        }
+        
+        .signup-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 32px;
+        }
+        
+        .tagline {
+            color: var(--dark-color);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .full-width {
+            grid-column: span 2;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 0;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #fff0f0;
+        }
+        
+        .terms {
+            font-size: 12px;
+            color: #666;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .terms a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .divider {
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .divider span {
+            position: relative;
+            z-index: 2;
+            background-color: white;
+            padding: 0 15px;
+            color: #999;
+        }
+        
+        .login-link {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: var(--secondary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .user-type {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .user-type-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 5px;
+        }
+        
+        .user-type-option:hover {
+            border-color: var(--secondary-color);
+        }
+        
+        .user-type-option.selected {
+            border-color: var(--primary-color);
+            background-color: #fff0f0;
+        }
+        
+        .user-type-option i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .password-strength {
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #ff0000;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="logo">
+            <span class="logo-icon">👨‍🍳</span>
+            <span>Register Your Account Now</span>
+        </div>
+        <div class="tagline">Join our community of culinary experts and enthusiasts</div>
+        
+        <div class="user-type">
+    <div class="user-type-option selected" onclick="selectUserType(this, 'student')">
+        <i>🎓</i>
+        Student
+    </div>
+    <div class="user-type-option" onclick="selectUserType(this, 'chef')">
+        <i>👨‍🍳</i>
+        Chef
+    </div>
+</div>
+
+
+
+<form action="REGISTER.php" method="POST">
+
+    <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="UserName" placeholder="Enter your username" required>
+    </div>
+
+    <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="UserEmail" placeholder="Enter your email" required>
+    </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="UserPass" placeholder="Create a password" required oninput="checkPasswordStrength(this.value)">
+
+                <div class="password-strength">
+                    <div class="strength-bar" id="strength-bar"></div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" placeholder="Confirm your password" required>
+            </div>
+            
+            
+            
+            <div class="terms">
+                By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </div>
+            
+            <button type="submit" class="btn">Create Account</button>
+            <input type="hidden" name="UserRole" id="UserRole" value="student">
+        </form>
+        
+        <div class="login-link">
+            Already have an account? <a href="login.html">Log in</a>
+        </div>
+    </div>
+
+    <script>
+        function selectUserType(element, type) {
+    document.querySelectorAll('.user-type-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    document.getElementById('UserRole').value = type; // Store selected role
+}
+
+        
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('strength-bar');
+            let strength = 0;
+            
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            let width = 0;
+            let color = '#ff0000';
+            
+            switch(strength) {
+                case 1:
+                    width = 25;
+                    color = '#ff0000';
+                    break;
+                case 2:
+                    width = 50;
+                    color = '#ff9900';
+                    break;
+                case 3:
+                    width = 75;
+                    color = '#ffcc00';
+                    break;
+                case 4:
+                    width = 100;
+                    color = '#00cc00';
+                    break;
+                default:
+                    width = 0;
+            }
+            
+            strengthBar.style.width = width + '%';
+            strengthBar.style.backgroundColor = color;
+        }
+    </script>
+</body>
+</html>
