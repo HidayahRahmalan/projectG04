@@ -52,7 +52,7 @@ if ($urgencyResult) {
         $urgencyData[] = $row['count'];
     }
 }
-
+/*
 // 4. Average Resolution Time for Completed Reports (in hours, minutes, seconds)
 $avgResolutionString = "N/A"; // Default value
 // MODIFIED: Calculate average time in SECONDS for more precision
@@ -87,7 +87,7 @@ if ($resolutionResult && $row = $resolutionResult->fetch_assoc()) {
         
         $avgResolutionString = implode(' ', $timeParts);
     }
-}
+}*/
 
 
 // 5. Staff Workload (Active Reports Assigned)
@@ -216,12 +216,12 @@ if ($staffResult) {
             <span class="count"><?php echo htmlspecialchars($statusCounts['Pending Approval']); ?></span>
             <span class="label">Pending Approval</span>
         </div>
+               <!--
         <div class="analytic-box">
-            <!-- MODIFIED: Display the formatted time string -->
-            <span class="count"><?php echo htmlspecialchars($avgResolutionString); ?></span>
+            <span class="count"></span>
             <span class="label">Avg. Resolution Time</span>
         </div>
-    </div>
+        -->
 
     <!-- Charts Grid -->
     <div class="analytics-grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
