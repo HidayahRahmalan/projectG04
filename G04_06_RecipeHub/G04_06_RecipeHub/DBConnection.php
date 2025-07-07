@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
 $db = 'p25_cooking';
-$user = 'Group6';
-$pass = 'cooking'; // change this if your MySQL has a password
+$user = 'root';
+$pass = ''; // change this if your MySQL has a password
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);

@@ -281,7 +281,7 @@
     </header>
 
     <nav>
-        <a href="LANDING.php" class="nav-button secondary">Home</a>
+        <a href="INDEX.php" class="nav-button secondary">Home</a>
         <a href="LOGIN.html" class="nav-button primary">Login</a>
     </nav>
 
