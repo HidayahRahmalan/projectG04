@@ -212,17 +212,21 @@ if ($staffResult) {
             <span class="count"><?php echo htmlspecialchars($statusCounts['Completed']); ?></span>
             <span class="label">Completed</span>
         </div>
-        <div class="analytic-box">
+               <div class="analytic-box">
             <span class="count"><?php echo htmlspecialchars($statusCounts['Pending Approval']); ?></span>
             <span class="label">Pending Approval</span>
         </div>
-               <!--
+        <!--
         <div class="analytic-box">
             <span class="count"></span>
             <span class="label">Avg. Resolution Time</span>
         </div>
         -->
 
+    </div> <!-- <<< --- ADD THIS MISSING LINE HERE --- <<< -->
+
+    <!-- Charts Grid -->
+    <div class="analytics-grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
     <!-- Charts Grid -->
     <div class="analytics-grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
         <div class="chart-container">
