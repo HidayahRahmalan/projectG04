@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document Reader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .word {
+            transition: background-color 0.2s;
+            padding: 2px 0;
+        }
+        .highlight {
+            background-color: yellow;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        #textPreview {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .speech-controls {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        #readSpinner {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Document Reader</h2>
+                <button id="readBtn" class="btn btn-primary" onclick="toggleReading('D0001')">
+                    <span id="readText">Read Document</span>
+                    <span id="readSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                </button>
+                
+                <div id="audioControls" class="d-none">
+                    <div class="speech-controls">
+                        <button onclick="pauseReading()" class="btn btn-sm btn-outline-secondary">Pause</button>
+                        <button onclick="resumeReading()" class="btn btn-sm btn-outline-secondary">Resume</button>
+                        <button onclick="stopReading()" class="btn btn-sm btn-danger">Stop</button>
+                        
+                        <div class="mt-2">
+                            <small>Speed: </small>
+                            <button onclick="changeRate(0.8)" class="btn btn-sm btn-outline-secondary">Slower</button>
+                            <button onclick="changeRate(1.0)" class="btn btn-sm btn-outline-secondary">Normal</button>
+                            <button onclick="changeRate(1.2)" class="btn btn-sm btn-outline-secondary">Faster</button>
+                        </div>
+                    </div>
+                    
+                    <div id="textPreview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUtterance = null;
+        let speechActive = false;
+        let currentText = '';
+
+        // Initialize speech synthesis
+        function loadVoices() {
+            return new Promise(resolve => {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    resolve(voices);
+                } else {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        resolve(window.speechSynthesis.getVoices());
+                    };
+                }
+            });
+        }
+
+        async function toggleReading(docId) {
+            const btn = document.getElementById('readBtn');
+            const spinner = document.getElementById('readSpinner');
+            const text = document.getElementById('readText');
+            const preview = document.getElementById('textPreview');
+            
+            // If already reading, stop
+            if (currentUtterance) {
+                stopReading();
+                return;
+            }
+            
+            // Set loading state
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-danger');
+            text.textContent = 'Stop';
+            spinner.classList.remove('d-none');
+            document.getElementById('audioControls').classList.remove('d-none');
+            preview.innerHTML = ''; // Clear previous content
+            
+            try {
+                // Load voices first
+                const voices = await loadVoices();
+                
+                // Extract text from document
+                const response = await fetch(`document_handler.php?doc_id=${docId}&action=extract`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentText = result.text;
+                    
+                    // Display full text with highlighting spans
+                    preview.innerHTML = currentText.split(' ').map(word => 
+                        `<span class="word">${escapeHtml(word)}</span>`
+                    ).join(' ');
+                    
+                    // Create speech utterance
+                    currentUtterance = new SpeechSynthesisUtterance(currentText);
+                    currentUtterance.voice = voices.find(v => v.lang.includes('en')) || voices[0];
+                    currentUtterance.rate = 1.0;
+                    currentUtterance.pitch = 1.0;
+                    
+                    // Highlight words as they're spoken
+                    let wordIndex = 0;
+                    const words = preview.querySelectorAll('.word');
+                    
+                    currentUtterance.onboundary = function(event) {
+                        if (event.name === 'word') {
+                            // Remove highlight from previous word
+                            if (wordIndex > 0) {
+                                words[wordIndex-1].classList.remove('highlight');
+                            }
+                            
+                            // Highlight current word
+                            if (wordIndex < words.length) {
+                                words[wordIndex].classList.add('highlight');
+                                
+                                // Scroll to the highlighted word
+                                words[wordIndex].scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }
+                            wordIndex++;
+                        }
+                    };
+                    
+                    currentUtterance.onend = currentUtterance.onerror = function() {
+                        // Remove highlight from last word
+                        if (wordIndex > 0) {
+                            words[wordIndex-1].classList.remove('highlight');
+                        }
+                        stopReading();
+                    };
+                    
+                    // Start speaking
+                    window.speechSynthesis.speak(currentUtterance);
+                    speechActive = true;
+                } else {
+                    alert(result.error || 'Failed to extract text from document');
+                    stopReading();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error processing document: ' + error.message);
+                stopReading();
+            } finally {
+                spinner.classList.add('d-none');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function pauseReading() {
+            if (currentUtterance) {
+                window.speechSynthesis.pause();
+                speechActive = false;
+            }
+        }
+
+        function resumeReading() {
+            if (currentUtterance && !speechActive) {
+                window.speechSynthesis.resume();
+                speechActive = true;
+            }
+        }
+
+        function stopReading() {
+            if (currentUtterance) {
+                window.speechSynthesis.cancel();
+                currentUtterance = null;
+            }
+            speechActive = false;
+            
+            const btn = document.getElementById('readBtn');
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-primary');
+            document.getElementById('readText').textContent = 'Read Document';
+            document.getElementById('audioControls').classList.add('d-none');
+        }
+
+        function changeRate(rate) {
+            if (currentUtterance) {
+                window.speechSynthesis.cancel();
+                currentUtterance.rate = rate;
+                window.speechSynthesis.speak(currentUtterance);
+            }
+        }
+
+        // Initialize voices when page loads
+        window.addEventListener('load', () => {
+            loadVoices();
+        });
+    </script>
+</body>
+</html>

@@ -1,136 +1,137 @@
+<?php 
+include('connect.php');
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Our Project Hub</title>
+    <title>Cooking Tutorial Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap');
-        :root {
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --radius: 1rem;
-            --main-color: #4a90e2;
-        }
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-            font-family: 'Montserrat', sans-serif;
-            color: #1a1a1a;
-        }
-        body {
-            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: url('images/background-pattern.png') center/cover no-repeat;
-            opacity: 0.15;
-            filter: blur(2px);
-            z-index: -1;
-        }
-        header {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        header h1 {
-            font-weight: 600;
-            font-size: 2.75rem;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        header p {
-            font-size: 1.2rem;
-            color: #f4f4f4;
-            margin-top: 0.5rem;
-        }
-        .team-section {
+        .hero-section {
+            background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836') no-repeat center center;
+            background-size: cover;
+            height: 60vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin: 2rem auto;
-            flex-direction: column;
-        }
-        .team-image {
-            width: 280px;
-            height: auto;
-            border-radius: 1rem;
-            object-fit: contain;
-            border: 6px solid white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
-            width: 90%;
-            max-width: 1200px;
-            margin: 2rem auto;
-        }
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            text-decoration: none;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
-        }
-        .card img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 1.25rem;
-        }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        .card p {
-            font-size: 0.95rem;
-            color: #555;
-        }
-        footer {
+            justify-content: center;
+            color: white;
             text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #ffffffcc;
+            position: relative;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .team-member {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .team-member:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Project Showcase</h1>
-        <p>Explore our featured projects and meet our wonderful team</p>
-    </header>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.php">CookingApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="recipes.php">Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="team.php">Our Team</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item"><a class="nav-link" href="profile.php">Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
+                    <?php else: ?>
+                        <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="signup.php">Sign Up</a></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    <section class="team-section">
-        <img class="team-image" src="images/kamiGeng.jpeg" alt="Team Member">
-        <p style="margin-top: 1rem; font-weight: 600; color: white;">Student BITD Gempak</p>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="display-4">Discover & Share Cooking Tutorials</h1>
+            <p class="lead">Join our community of chefs and culinary students</p>
+            <?php if(!isset($_SESSION['user_id'])): ?>
+                <a href="signup.php" class="btn btn-primary btn-lg">Get Started</a>
+            <?php endif; ?>
+        </div>
     </section>
 
-    <main class="grid">
- 
- 
- 
-    </main>
+    <!-- Featured Recipes -->
+    <section class="container my-5">
+        <h2 class="text-center mb-4">Featured Recipes</h2>
+        <div class="row">
+            <?php
+            $stmt = $conn->prepare("SELECT r.recipe_id, r.title, r.description, r.image_id, u.username, i.image_name 
+           FROM recipe r 
+           JOIN user u ON r.user_id = u.user_id 
+           LEFT JOIN image i ON r.image_id = i.image_id 
+           ORDER BY r.date_time DESC LIMIT 3");
 
-    <footer>
-        &copy; <?= date('Y') ?> Project Team. All rights reserved.
+
+            $stmt->execute();
+            $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($recipes as $recipe) {
+                $imageId = $recipe['image_id'] ?? '';
+                $imageName = $recipe['image_name'] ?? 'Recipe image';
+                $title = $recipe['title'] ?? 'Untitled';
+                $description = $recipe['description'] ?? 'No description available.';
+                $username = $recipe['username'] ?? 'Unknown user';
+                $recipeId = $recipe['recipe_id'] ?? 0;
+
+                echo '<div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <img src="get_image.php?id=' . htmlspecialchars($imageId) . '" class="card-img-top" alt="' . htmlspecialchars($imageName) . '" style="height: 200px; object-fit: cover;" onerror="this.onerror=null;this.src=\'assets/default_food.jpg\'">
+                            <div class="card-body">
+                                <h5 class="card-title">' . htmlspecialchars($title) . '</h5>
+                                <p class="card-text">' . substr(htmlspecialchars($description), 0, 100) . '...</p>
+                                <p class="text-muted">By ' . htmlspecialchars($username) . '</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="recipe_detail.php?id=' . htmlspecialchars($recipeId) . '" class="btn btn-primary">View Recipe</a>
+                            </div>
+                        </div>
+                    </div>';
+            }
+
+            ?>
+        </div>
+        <div class="text-center mt-3">
+            <a href="recipes.php" class="btn btn-outline-primary">View All Recipes</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p>&copy; 2025 CookingApp. All rights reserved.</p>
+        </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
