@@ -467,8 +467,9 @@ $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <?php
                             $imagePath = $recipe['URL'];
+$imagePath = $recipe['URL'];
 if ($imagePath && !preg_match('#^(/|https?://)#', $imagePath)) {
-    $imagePath = '/G04_06_RecipeHub/' . ltrim($imagePath, '/');
+    $imagePath = '/BITP3353_2025/projectG04/G04_06_RecipeHub/' . ltrim($imagePath, '/');
 }
 
 
