@@ -220,7 +220,7 @@ $user = $stmt->fetch();
                 <div class="col-md-4">
                     <div class="developer-card p-4">
                         <div class="developer-img-container mb-3">
-                            <img src="images/team/developer2.jpg" class="developer-img" alt="Ikmal Daniel">
+                            <img src="images/developer2.jpg" class="developer-img" alt="Ikmal Daniel">
                         </div>
 
                         <div class="text-center">
@@ -263,7 +263,7 @@ $user = $stmt->fetch();
                 <div class="col-md-4">
                     <div class="developer-card p-4">
                         <div class="developer-img-container mb-3">
-                            <img src="images/team/developer3.jpg" class="developer-img" alt="Amir Mohd">
+                            <img src="images/developer1.jpg" class="developer-img" alt="Amir Mohd">
                         </div>
 
                         <div class="text-center">
