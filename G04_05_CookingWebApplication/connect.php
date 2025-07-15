@@ -2,8 +2,8 @@
 // Database configuration
 $host = "localhost";
 $dbname = "p25_cooking_app";
-$user = "root"; // Change this if your MySQL username is different
-$password = ""; // Change this to your actual MySQL password
+$user = "cooking_app"; // Change this if your MySQL username is different
+$password = "cooking@app24"; // Change this to your actual MySQL password
 
 // Connection options
 $options = [
