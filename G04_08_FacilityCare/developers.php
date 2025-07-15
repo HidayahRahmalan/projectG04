@@ -43,7 +43,7 @@ $user = $stmt->fetch();
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('images/team-logo.png') center/contain no-repeat;
+            background: url('images/G4_08_FacilityCare.jpg') center/contain no-repeat;
             opacity: 0.03;
             z-index: 0;
         }
