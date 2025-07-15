@@ -25,6 +25,7 @@ require_once 'connection.php';
       <div class="ms-auto">
         <a href="login.php" class="btn btn-gold2">Login</a>
         <a href="register.php" class="btn btn-gold2 btn-outline">Sign Up</a>
+        <a href="developers2.php" class="btn btn-gold2">About Us</a>
       </div>
     </div>
   </nav>
