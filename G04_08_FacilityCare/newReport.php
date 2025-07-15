@@ -212,24 +212,9 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
 
                             <div class="mb-4">
-                                <label class="form-label">Upload Evidence (Photos/Videos)
-                                    <span class="text-muted small">
-                                        <span class="language-selector">
-                                            <span id="currentEvidenceLanguage" class="active-language">English (US)</span>
-                                            <i class="fas fa-microphone ms-1 voice-btn" id="voiceEvidenceBtn" title="Voice Description"></i>
-                                            <div class="language-dropdown">
-                                                <div class="language-option active" onclick="changeEvidenceLanguage('en-US', 'English (US)', this)">
-                                                    <img src="https://flagcdn.com/w20/us.png" class="language-flag"> English
-                                                </div>
-                                                <div class="language-option" onclick="changeEvidenceLanguage('ms-MY', 'Malay', this)">
-                                                    <img src="https://flagcdn.com/w20/my.png" class="language-flag"> Malay
-                                                </div>
-                                            </div>
-                                        </span>
-                                    </span>
-                                </label>
+                                <label class="form-label">Upload Evidence (Photos/Videos)</label>
                                 <div class="border rounded p-3 text-center">
-                                    <input type="text" id="fileCaption" class="form-control mb-3" placeholder="Voice description of your evidence..." name="file_description">
+                                    <input type="text" id="fileCaption" class="form-control mb-3" placeholder="Add description for your evidence..." name="file_description">
                                     <div id="previewArea" class="d-flex flex-wrap gap-2 mb-3"></div>
                                     <input type="file" id="fileUpload" name="media[]" class="d-none" accept="image/*,video/*" multiple>
                                     <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileUpload').click()">
@@ -270,8 +255,6 @@ if (!isset($_SESSION['user_id'])) {
         // Language configuration
         let currentLanguage = 'en-US';
         let currentLanguageName = 'English (US)';
-        let currentEvidenceLanguage = 'en-US';
-        let currentEvidenceLanguageName = 'English (US)';
 
         function changeLanguage(langCode, langName, element) {
             currentLanguage = langCode;
@@ -279,21 +262,6 @@ if (!isset($_SESSION['user_id'])) {
             document.getElementById('currentLanguage').textContent = langName;
             if (descVoice) {
                 descVoice.setLanguage(langCode);
-            }
-            // Update active state in dropdown
-            const dropdown = element.closest('.language-dropdown');
-            dropdown.querySelectorAll('.language-option').forEach(opt => {
-                opt.classList.remove('active');
-            });
-            element.classList.add('active');
-        }
-
-        function changeEvidenceLanguage(langCode, langName, element) {
-            currentEvidenceLanguage = langCode;
-            currentEvidenceLanguageName = langName;
-            document.getElementById('currentEvidenceLanguage').textContent = langName;
-            if (evidenceVoice) {
-                evidenceVoice.setLanguage(langCode);
             }
             // Update active state in dropdown
             const dropdown = element.closest('.language-dropdown');
@@ -443,7 +411,7 @@ if (!isset($_SESSION['user_id'])) {
         }
 
         // Initialize voice recognition
-        let descVoice, evidenceVoice;
+        let descVoice;
         document.addEventListener('DOMContentLoaded', function() {
             // Description field voice recognition
             descVoice = new VoiceRecognition(
@@ -451,14 +419,6 @@ if (!isset($_SESSION['user_id'])) {
                 'voiceDescBtn',
                 'voiceStatus',
                 currentLanguage
-            );
-
-            // Evidence description voice recognition
-            evidenceVoice = new VoiceRecognition(
-                'fileCaption',
-                'voiceEvidenceBtn',
-                null,
-                currentEvidenceLanguage
             );
 
             // File upload preview functionality
