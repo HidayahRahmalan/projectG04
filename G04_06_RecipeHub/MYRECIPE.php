@@ -469,9 +469,13 @@ $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             $imagePath = $recipe['URL'];
 
 $imagePath = $recipe['URL'];
+
 if ($imagePath && !preg_match('#^https?://#', $imagePath)) {
-    $imagePath = 'https://bitp3353.utem.edu.my/BITP3353_2025/projectG04/G04_06_RecipeHub/' . ltrim($imagePath, '/');
+    // Remove any leading slashes or directory prefixes
+    $imagePath = preg_replace('#^/?(G04_06_RecipeHub/)?(uploads/|UPLOADS/)?#i', '', $imagePath);
+    $imagePath = 'https://bitp3353.utem.edu.my/BITP3353_2025/projectG04/G04_06_RecipeHub/UPLOADS/' . $imagePath;
 }
+
 
 
 
