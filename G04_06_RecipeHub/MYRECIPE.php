@@ -467,9 +467,10 @@ $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <?php
                             $imagePath = $recipe['URL'];
-if ($imagePath && !str_starts_with($imagePath, '/G04_06_RecipeHub')) {
-    $imagePath = '/G04_06_RecipeHub' . $imagePath;
+if ($imagePath && !preg_match('#^(/|https?://)#', $imagePath)) {
+    $imagePath = '/G04_06_RecipeHub/' . ltrim($imagePath, '/');
 }
+
 
                         ?>
                         <div class="recipe-image" style="background-image: url('<?= htmlspecialchars($imagePath ?: "placeholder.jpg") ?>')"></div>
