@@ -1,0 +1,31 @@
+2025-06-30 17:51:24,231 - INFO - Processing video: C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625e1892d269.23299082.mp4
+2025-06-30 17:51:24,232 - INFO - Running FFmpeg command: ffmpeg -y -i C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625e1892d269.23299082.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625e1892d269.23299082.wav
+2025-06-30 17:51:24,363 - INFO - FFmpeg output: 
+2025-06-30 17:51:24,363 - INFO - Loading Whisper model...
+2025-06-30 17:51:26,474 - INFO - Starting transcription...
+2025-06-30 17:51:30,796 - INFO - Generating summary...
+2025-06-30 17:51:30,796 - ERROR - OpenAI API error: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-06-30 17:51:30,798 - INFO - Processing completed successfully
+2025-06-30 17:56:15,586 - INFO - Processing video: C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625f3b7cb4e0.14769423.mp4
+2025-06-30 17:56:15,586 - INFO - Running FFmpeg command: ffmpeg -y -i C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625f3b7cb4e0.14769423.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_68625f3b7cb4e0.14769423.wav
+2025-06-30 17:56:15,641 - INFO - FFmpeg output: 
+2025-06-30 17:56:15,641 - INFO - Loading Whisper model...
+2025-06-30 17:56:16,861 - INFO - Starting transcription...
+2025-06-30 17:56:20,418 - INFO - Generating summary...
+2025-06-30 17:56:21,781 - INFO - Processing completed successfully
+2025-07-01 22:51:56,357 - INFO - Processing video: C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_6863f5fcabcc02.01572551.mp4
+2025-07-01 22:51:56,359 - INFO - Running FFmpeg command: ffmpeg -y -i C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_6863f5fcabcc02.01572551.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 C:\Users\user\Documents\GitHub\FacilityCare\backend\uploads\media_6863f5fcabcc02.01572551.wav
+2025-07-01 22:51:59,172 - INFO - FFmpeg output: 
+2025-07-01 22:51:59,172 - INFO - Loading Whisper model...
+2025-07-01 22:52:02,203 - INFO - Starting transcription...
+2025-07-01 22:52:11,981 - INFO - Generating summary...
+2025-07-01 22:52:18,521 - INFO - Processing completed successfully
