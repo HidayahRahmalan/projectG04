@@ -400,10 +400,11 @@ $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php foreach ($recipes as $recipe): ?>
      <div class="recipe-card" data-cuisine="<?= htmlspecialchars($recipe['Cuisine']) ?>" data-tags="<?= htmlspecialchars($recipe['DietaryTags']) ?>">
        <?php
-    $imagePath = $recipe['URL'];
-    if ($imagePath && !str_starts_with($imagePath, 'http') && !str_starts_with($imagePath, '/G04_06_RecipeHub')) {
-        $imagePath = '/G04_06_RecipeHub' . $imagePath; // Fix relative local path
-    }
+   $imagePath = $recipe['URL'];
+if ($imagePath && !preg_match('#^https?://#', $imagePath)) {
+    $imagePath = 'https://bitp3353.utem.edu.my/BITP3353_2025/projectG04/G04_06_RecipeHub/' . ltrim($imagePath, '/');
+}
+
 ?>
 <div class="recipe-image" style="background-image: url('<?= htmlspecialchars($imagePath ?: "placeholder.jpg") ?>')"></div>
 
