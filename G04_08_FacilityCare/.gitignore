@@ -1,0 +1,2 @@
+# Ignore .env inside ai_scripts folder
+ai_scripts/.env
