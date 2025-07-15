@@ -1,5 +1,7 @@
 <?php
-// Move session_name() before any session_start()
+// Start session with default name first
+session_start();
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     require_once '../connection.php';
 
@@ -31,19 +33,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Detect user role from user_id's first letter
         $firstChar = strtoupper(substr($user['user_id'], 0, 1));
-        
-        // Set session name based on role BEFORE starting session
+
+        // Determine redirect URL and session name
+        $sessionName = '';
+        $redirect = '';
+
         switch ($firstChar) {
             case 'A':
-                session_name("admin_session");
+                $sessionName = "admin_session";
                 $redirect = "../Admin/dashboard.php";
                 break;
             case 'S':
-                session_name("staff_session");
+                $sessionName = "staff_session";
                 $redirect = "../homepagestaff.php";
                 break;
             case 'T':
-                session_name("technician_session");
+                $sessionName = "technician_session";
                 $redirect = "../technician/dashboardTech.php";
                 break;
             default:
@@ -52,8 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 exit();
         }
 
-        // Now start the session with the correct name
+        // Close current session
+        session_write_close();
+
+        // Set new session name and restart session
+        session_name($sessionName);
         session_start();
+
+        // Set session variables
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['name'] = $user['name'];
         $_SESSION['email'] = $user['email'];
@@ -62,12 +73,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['technician_id'] = $user['user_id'];
         }
 
+        // Success message for modal
+        $_SESSION['success_message'] = "Welcome back, " . $user['name'] . "!";
+
         header("Location: $redirect");
         exit();
-
     } catch (PDOException $e) {
         $_SESSION['login_error'] = "Database error: " . $e->getMessage();
         header("Location: ../login.php");
         exit();
     }
+} else {
+    $_SESSION['login_error'] = "Invalid request method.";
+    header("Location: ../login.php");
+    exit();
 }
