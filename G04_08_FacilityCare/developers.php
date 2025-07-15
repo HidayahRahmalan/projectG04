@@ -26,6 +26,79 @@ $user = $stmt->fetch();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="CSS/style.css">
     <style>
+        /* Enhanced showcase section styles with text shadows */
+        .showcase-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('images/team-logo.png') center/contain no-repeat;
+            opacity: 0.03;
+            z-index: 0;
+        }
+
+        .showcase-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .showcase-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .team-logo-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 1.5rem;
+            padding: 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
         .developer-header {
             background-color: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
@@ -139,6 +212,20 @@ $user = $stmt->fetch();
         </div>
     </nav>
 
+    <!-- New Showcase Section -->
+    <section class="showcase-section">
+        <div class="container">
+            <h1 class="showcase-title">Welcome to Our Project Showcase</h1>
+            <p class="showcase-subtitle">Explore our featured projects and meet our wonderful team</p>
+
+            <div class="team-logo-container">
+                <img src="images/G4_08_ikmal_AhmadAfiq_Ainun_AinNatasya_FacilityCare.jpeg" alt="Team Logo" class="team-logo">
+            </div>
+
+            <p class="team-name">Student BITD Gempak</p>
+        </div>
+    </section>
+
     <section class="py-5">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -182,7 +269,7 @@ $user = $stmt->fetch();
                             </div>
 
                             <div class="text-center mt-3">
-                                <a href="pdf/ainun_resume.pdf" class="btn btn-primary" download>
+                                <a href="pdf/RESUME IKMAL.pdf" class="btn btn-primary" download>
                                     <i class="fas fa-download me-2"></i>Download Resume
                                 </a>
                             </div>
@@ -225,7 +312,7 @@ $user = $stmt->fetch();
                             </div>
 
                             <div class="text-center mt-3">
-                                <a href="pdf/ainun_resume.pdf" class="btn btn-primary" download>
+                                <a href="pdf/RESUME AFIQ.pdf" class="btn btn-primary" download>
                                     <i class="fas fa-download me-2"></i>Download Resume
                                 </a>
                             </div>
