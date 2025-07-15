@@ -214,7 +214,6 @@ if (!isset($_SESSION['user_id'])) {
                             <div class="mb-4">
                                 <label class="form-label">Upload Evidence (Photos/Videos)</label>
                                 <div class="border rounded p-3 text-center">
-                                    <input type="text" id="fileCaption" class="form-control mb-3" placeholder="Add description for your evidence..." name="file_description">
                                     <div id="previewArea" class="d-flex flex-wrap gap-2 mb-3"></div>
                                     <input type="file" id="fileUpload" name="media[]" class="d-none" accept="image/*,video/*" multiple>
                                     <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileUpload').click()">
