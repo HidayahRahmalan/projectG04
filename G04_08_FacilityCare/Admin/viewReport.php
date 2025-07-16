@@ -296,15 +296,6 @@
                                         <input type="hidden" name="update_status" value="1">
                                         <input type="hidden" name="report_id" value="<?= $report['report_id'] ?>">
 
-                                        <div class="d-grid gap-2">
-                                            <button class="btn btn-success" name="status" value="resolved" type="submit">
-                                                <i class="bi bi-check-circle me-1"></i> Mark as Resolved
-                                            </button>
-                                            <button class="btn btn-outline-secondary" name="status" value="archived" type="submit">
-                                                <i class="bi bi-archive me-1"></i> Archive Report
-                                            </button>
-                                        </div>
-                                    </form>
                                 </div>
                                 <hr>
 
