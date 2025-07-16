@@ -1,0 +1,59 @@
+fetch('notifications_fetch.php')
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById('notification-list');
+    container.innerHTML = '';
+
+    if (!data.success || !data.grouped || Object.keys(data.grouped).length === 0) {
+      container.innerHTML = '<li>No notifications</li>';
+      return;
+    }
+
+    // Helper to format dd/mm/yy
+    function formatDate(str) {
+      const d = new Date(str);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      return `${day}/${month}/${year}`;
+    }
+
+    Object.entries(data.grouped).forEach(([recipeID, notis]) => {
+      // Show only the latest notification by default
+      const li = document.createElement('li');
+      li.textContent = `${notis[0].message} (${formatDate(notis[0].created_at)})`;
+
+      if (notis.length > 1) {
+        const seeMoreBtn = document.createElement('button');
+        seeMoreBtn.textContent = `See more (${notis.length - 1} more)`;
+        seeMoreBtn.style.marginLeft = '10px';
+
+        const moreList = document.createElement('ul');
+        moreList.style.display = 'none';
+        moreList.style.marginTop = '5px';
+
+        notis.slice(1).forEach(n => {
+          const moreLi = document.createElement('li');
+          moreLi.textContent = `${n.message} (${formatDate(n.created_at)})`;
+          moreList.appendChild(moreLi);
+        });
+
+        seeMoreBtn.onclick = function () {
+          moreList.style.display = moreList.style.display === 'none' ? 'block' : 'none';
+          seeMoreBtn.textContent = moreList.style.display === 'none'
+            ? `See more (${notis.length - 1} more)`
+            : 'Hide';
+        };
+
+        li.appendChild(seeMoreBtn);
+        li.appendChild(moreList);
+      }
+
+      container.appendChild(li);
+    });
+  })
+  .catch(err => {
+    console.error(err);
+    const container = document.getElementById('notification-list');
+    container.innerHTML = '<li>Failed to load notifications</li>';
+  });
