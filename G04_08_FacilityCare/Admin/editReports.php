@@ -439,22 +439,6 @@ foreach ($mediaFiles as $media) {
                                 </form>
 
 
-                                <hr>
-
-                                <div class="mb-4">
-                                    <h6 class="mb-3">Quick Actions</h6>
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-success">
-                                            <i class="bi bi-check-circle me-1"></i> Mark as Resolved
-                                        </button>
-                                        <button class="btn btn-outline-secondary">
-                                            <i class="bi bi-archive me-1"></i> Archive Report
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <hr>
-
                                 <div>
                                     <h6 class="mb-3">Report Information</h6>
                                     <ul class="list-group list-group-flush">
