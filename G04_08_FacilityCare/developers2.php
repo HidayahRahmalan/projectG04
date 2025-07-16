@@ -1,19 +1,3 @@
-<?php
-session_name("staff_session");
-session_start();
-require_once 'connection.php';
-
-if (!isset($_SESSION['user_id'])) {
-    header("Location: homepage.php");
-    exit();
-}
-
-// Get user data from database
-$userId = $_SESSION['user_id'];
-$stmt = $pdo->prepare("SELECT * FROM User WHERE user_id = ?");
-$stmt->execute([$userId]);
-$user = $stmt->fetch();
-?>
 
 <!DOCTYPE html>
 <html lang="en">
