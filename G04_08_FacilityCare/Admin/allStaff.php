@@ -1,3 +1,5 @@
+ni kat allStaff.php. aku betulkan pagination kat sini.
+
 <?php
 session_name("admin_session");
 session_start();
@@ -51,11 +53,37 @@ if (!empty($search)) {
     $stmt->bindValue(':search', "%$search%");
 }
 
-$stmt->execute();
-$staffList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Pagination setup
+$itemsPerPage = 5;
+$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
 
-// Guna result yang dah filtered
-$staffUsers = $staffList;
+// Kira total dulu
+$countQuery = "SELECT COUNT(DISTINCT u.user_id) FROM user u LEFT JOIN report r ON u.user_id = r.user_id WHERE u.position = 'staff'";
+if (!empty($search)) {
+    $countQuery .= " AND (u.name LIKE :search OR u.email LIKE :search)";
+}
+$countStmt = $pdo->prepare($countQuery);
+if (!empty($search)) {
+    $countStmt->bindValue(':search', "%$search%");
+}
+$countStmt->execute();
+$totalStaff = $countStmt->fetchColumn();
+$totalPages = ceil($totalStaff / $itemsPerPage);
+
+// Tambah LIMIT ke query asal
+$query .= " LIMIT :limit OFFSET :offset";
+$stmt = $pdo->prepare($query);
+
+// Bind semula
+if (!empty($search)) {
+    $stmt->bindValue(':search', "%$search%");
+}
+$stmt->bindValue(':limit', $itemsPerPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+$staffUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -260,15 +288,27 @@ $staffUsers = $staffList;
                         <!-- Pagination -->
                         <nav aria-label="Technicians pagination" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
+                                <?php if ($currentPage > 1): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $currentPage - 1])) ?>">Previous</a>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                                <?php endif; ?>
+
+                                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                    <li class="page-item <?= ($i === $currentPage) ? 'active' : '' ?>">
+                                        <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"><?= $i ?></a>
+                                    </li>
+                                <?php endfor; ?>
+
+                                <?php if ($currentPage < $totalPages): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $currentPage + 1])) ?>">Next</a>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                <?php endif; ?>
                             </ul>
                         </nav>
                     </div>
