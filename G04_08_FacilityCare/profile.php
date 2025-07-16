@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="container">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0"><i class="fas fa-user-circle text-primary me-2"></i>My Profile</h2>
-        <a href="homepage.php" class="btn btn-outline-secondary">
+        <a href="homepageStaff.php" class="btn btn-outline-secondary">
           <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
         </a>
       </div>
