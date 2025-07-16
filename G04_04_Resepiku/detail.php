@@ -1,7 +1,7 @@
 <?php
+session_start();
 include 'connection.php';
 include 'headerdetail.php';
-session_start();
 
 // ---------- HANDLE COMMENT SUBMISSION ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($_POST['recipeID'])) {
@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
     $userID = $_SESSION['UserID'] ?? null;
 
     if (!$userID) {
-        echo json_encode(["status" => "error", "message" => "Sesi pengguna tidak dijumpai."]);
+        echo "<script>alert('Sila log masuk terlebih dahulu.'); window.location.href='login.html';</script>";
         exit;
     }
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
 
     // Handle video
     if (isset($_FILES['video']) && $_FILES['video']['size'] > 0) {
-        $videoName = basename($_FILES['video']['name']);
+        $videoName = uniqid('vid_') . "_" . basename($_FILES['video']['name']);
         $targetVideo = "uploads/" . $videoName;
         move_uploaded_file($_FILES['video']['tmp_name'], $targetVideo);
         $videoPath = $targetVideo;
@@ -45,15 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
 
     if ($commentType === '') $commentType = 'Text';
 
-    $stmt = $conn->prepare("INSERT INTO FEEDBACK (Comment, VideoAttachment, ImageAttachment, UserID, RecipeID) VALUES (  ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO FEEDBACK (FeedbackID, CommentType, Comment, VideoAttachment, ImageAttachment, UserID, RecipeID) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssss", $newID, $commentType, $comment, $videoPath, $imageData, $userID, $recipeID);
 
     if ($stmt->execute()) {
-        echo json_encode(["status" => "success"]);
+        echo "<script>alert('Maklum balas berjaya dihantar!'); window.location.href='detail.php?id=$recipeID';</script>";
         exit;
     } else {
-        echo json_encode(["status" => "error", "message" => $stmt->error]);
-        exit;
+        echo "<script>alert('Ralat semasa menghantar maklum balas: " . $stmt->error . "');</script>";
     }
 }
 
@@ -139,19 +138,32 @@ if ($recipeID) {
     <p><strong><?= htmlspecialchars($data['FullName']) ?></strong></p>
   </div>
 
-  <div class="feedback-section">
+  <!-- Feedback Section -->
+  <div class="feedback-section" style="margin-top: 30px;">
     <h3>Komen / Maklum Balas</h3>
-    <form class="feedback-form" id="feedbackForm" enctype="multipart/form-data">
-      <textarea id="commentText" name="comment" rows="4" placeholder="Tulis komen anda di sini..." required></textarea>
-      <label>Tambah Gambar:</label>
-      <input type="file" id="commentImage" name="image" accept="image/*" />
-      <label>Tambah Video:</label>
-      <input type="file" id="commentVideo" name="video" accept="video/*" />
-      <br />
-      <button type="submit">Hantar Komen</button>
-    </form>
 
-    <div class="comment-list" id="commentList">
+    <?php if (isset($_SESSION['UserID'])): ?>
+    <form method="POST" action="" enctype="multipart/form-data" class="comment-form" style="margin-bottom: 30px;">
+      <textarea name="comment" rows="4" placeholder="Tulis komen anda di sini..." required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
+      <input type="hidden" name="recipeID" value="<?= htmlspecialchars($_GET['id']) ?>" />
+      
+      <div style="margin-top: 10px;">
+        <label>Tambah Gambar:</label><br>
+        <input type="file" name="image" accept="image/*">
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label>Tambah Video:</label><br>
+        <input type="file" name="video" accept="video/*">
+      </div>
+
+      <button type="submit" style="margin-top: 15px; padding: 10px 20px; background-color: #0066cc; color: white; border: none; border-radius: 5px;">Hantar Komen</button>
+    </form>
+    <?php else: ?>
+      <p><strong>Sila log masuk untuk memberi komen.</strong></p>
+    <?php endif; ?>
+
+    <div class="comment-list">
       <h4>Senarai Komen</h4>
       <?php
       $feedbackQuery = $conn->prepare("
@@ -168,25 +180,25 @@ if ($recipeID) {
       if ($feedbackResult && $feedbackResult->num_rows > 0) {
           while ($fb = $feedbackResult->fetch_assoc()) {
               echo "<div class='comment'>";
-              echo "<p><strong>" . htmlspecialchars($fb['FullName']) . "</strong> (" . $fb['ComDateTime'] . ")</p>";
+              echo "<p><strong>" . htmlspecialchars($fb['FullName']) . "</strong> <small>(" . date('d-m-Y H:i', strtotime($fb['ComDateTime'])) . ")</small></p>";
               echo "<p>" . nl2br(htmlspecialchars($fb['Comment'])) . "</p>";
 
               if ($fb['ImageAttachment']) {
                   $img = base64_encode($fb['ImageAttachment']);
-                  echo "<img src='data:image/jpeg;base64,$img' style='max-width:200px; display:block; margin-top:5px;' />";
+                  echo "<img src='data:image/jpeg;base64,$img' alt='Comment Image' style='max-width:250px; display:block; margin-top:10px; border-radius:5px;' />";
               }
 
               if ($fb['VideoAttachment']) {
-                  echo "<video controls style='max-width:300px; margin-top:5px;'>
+                  echo "<video controls style='max-width:300px; display:block; margin-top:10px;'>
                           <source src='" . htmlspecialchars($fb['VideoAttachment']) . "' type='video/mp4'>
-                          Your browser does not support the video tag.
+                          Video tidak disokong pada pelayar anda.
                         </video>";
               }
 
-              echo "<hr></div>";
+              echo "</div>";
           }
       } else {
-          echo "<p>Tiada komen lagi.</p>";
+          echo "<p>Tiada komen lagi. Jadilah yang pertama!</p>";
       }
       ?>
     </div>
@@ -195,47 +207,15 @@ if ($recipeID) {
 
 <?php include 'footer.php'; ?>
 
-<script>
-document.getElementById("feedbackForm").addEventListener("submit", async function (event) {
-  event.preventDefault();
-
-  const commentText = document.getElementById("commentText").value;
-  const image = document.getElementById("commentImage").files[0];
-  const video = document.getElementById("commentVideo").files[0];
-  const recipeID = new URLSearchParams(window.location.search).get("id");
-
-  const formData = new FormData();
-  formData.append("comment", commentText);
-  formData.append("recipeID", recipeID);
-  if (image) formData.append("image", image);
-  if (video) formData.append("video", video);
-
-  try {
-    const response = await fetch(window.location.href, {
-      method: "POST",
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (result.status === "success") {
-      alert("Maklum balas berjaya dihantar!");
-      location.reload();
-    } else {
-      alert("Ralat: " + result.message);
-    }
-  } catch (error) {
-    alert("Ralat semasa menghantar maklum balas.");
-    console.error(error);
-  }
-});
-</script>
-
 <style>
 .comment {
-  background: #f9f9f9;
-  padding: 10px;
+  background-color: #f4f4f4;
+  border-left: 4px solid #0077cc;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+}
+.comment-list h4 {
   margin-bottom: 15px;
-  border-radius: 8px;
 }
 </style>
