@@ -10,6 +10,10 @@ if (!$doc_id || !is_numeric($doc_id)) {
 }
 
 try {
+    // Important PDO settings for consistent fetch behavior
+    $conn->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, false);
+    $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
     $stmt = $conn->prepare("SELECT doc_data, doc_type FROM document WHERE doc_id = ?");
     $stmt->execute([$doc_id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -27,12 +31,15 @@ try {
         exit();
     }
 
-    // Safely extract the text from binary
-    $text = $doc_data;
-    if (is_resource($text)) {
-        $text = stream_get_contents($text);
+    // --- Handle binary LONGBLOB ---
+    // If it's a stream (resource), read it
+    if (is_resource($doc_data)) {
+        $text = stream_get_contents($doc_data);
+    } else {
+        $text = $doc_data;
     }
 
+    // Sanitize and convert text
     $text = mb_convert_encoding($text, 'UTF-8', 'auto');
     $text = preg_replace('/\s+/', ' ', trim($text));
 
@@ -41,6 +48,7 @@ try {
         exit();
     }
 
+    // Return success
     echo json_encode(['success' => true, 'text' => $text]);
     exit();
 
