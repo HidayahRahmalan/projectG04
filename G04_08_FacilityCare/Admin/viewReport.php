@@ -290,14 +290,6 @@
                                     </div>
                                 </div>
 
-                                <div class="mb-4">
-                                    <h6 class="mb-3">Update Status</h6>
-                                    <form method="post" action="viewReport.php?id=<?= $report['report_id'] ?>">
-                                        <input type="hidden" name="update_status" value="1">
-                                        <input type="hidden" name="report_id" value="<?= $report['report_id'] ?>">
-
-                                </div>
-                                <hr>
 
                                 <!-- comment_form.php -->
                                 <!-- <div class="mb-4">
