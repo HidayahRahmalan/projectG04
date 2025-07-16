@@ -1,136 +1,159 @@
+<?php
+require_once 'db.php';
+
+// Initialize variables
+$total_reports = 0;
+$pending_reports = 0;
+$resolved_reports = 0;
+$error_message = '';
+
+// Fetch live statistics from the database
+if ($conn && !$conn->connect_error) {
+    try {
+        $sql_total = "SELECT COUNT(*) FROM report";
+        $total_reports = $conn->query($sql_total)->fetch_row()[0] ?? 0;
+
+        $sql_pending = "SELECT COUNT(*) FROM report WHERE Status = 'pending'";
+        $pending_reports = $conn->query($sql_pending)->fetch_row()[0] ?? 0;
+
+        $sql_resolved = "SELECT COUNT(*) FROM report WHERE Status = 'resolved'";
+        $resolved_reports = $conn->query($sql_resolved)->fetch_row()[0] ?? 0;
+
+    } catch (Exception $e) {
+        $error_message = "Could not load system statistics.";
+        error_log("Index page stats error: " . $e->getMessage());
+    }
+    $conn->close();
+} else {
+    $error_message = "System statistics are currently unavailable.";
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Our Project Hub</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap');
-        :root {
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --radius: 1rem;
-            --main-color: #4a90e2;
-        }
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-            font-family: 'Montserrat', sans-serif;
-            color: #1a1a1a;
-        }
-        body {
-            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: url('images/background-pattern.png') center/cover no-repeat;
-            opacity: 0.15;
-            filter: blur(2px);
-            z-index: -1;
-        }
-        header {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        header h1 {
-            font-weight: 600;
-            font-size: 2.75rem;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        header p {
-            font-size: 1.2rem;
-            color: #f4f4f4;
-            margin-top: 0.5rem;
-        }
-        .team-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2rem auto;
-            flex-direction: column;
-        }
-        .team-image {
-            width: 280px;
-            height: auto;
-            border-radius: 1rem;
-            object-fit: contain;
-            border: 6px solid white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
-            width: 90%;
-            max-width: 1200px;
-            margin: 2rem auto;
-        }
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            text-decoration: none;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
-        }
-        .card img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 1.25rem;
-        }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        .card p {
-            font-size: 0.95rem;
-            color: #555;
-        }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #ffffffcc;
-        }
-    </style>
+    <title>Welcome - UTeM Maintenance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/index_styles.css">
 </head>
-<body>
-    <header>
-        <h1>Welcome to Our Project Showcase</h1>
-        <p>Explore our featured projects and meet our wonderful team</p>
-    </header>
+<body class="landing-page">
 
-    <section class="team-section">
-        <img class="team-image" src="images/kamiGeng.jpeg" alt="Team Member">
-        <p style="margin-top: 1rem; font-weight: 600; color: white;">Student BITD Gempak</p>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+                <img src="assets/img/utem_logo.jpg" alt="UTeM Logo" style="height: 30px; margin-right: 10px;">
+                UTeM Maintenance
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="publicNavbar">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a href="login.php" class="btn btn-primary fw-bold">
+                            <i class="fas fa-sign-in-alt me-2"></i>Staff & Admin Login
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <img src="assets/img/utem_logo.jpg" alt="UTeM Logo" class="mb-4" style="height: 80px;">
+            <h1 class="display-4">Efficient Maintenance Reporting</h1>
+            <p class="lead">
+                The centralized platform for UTeM staff and administrators to report, track, and resolve maintenance issues across all residential locations.
+            </p>
+            <a href="login.php" class="btn btn-light btn-lg btn-cta"><i class="fas fa-wrench me-2"></i>Access Your Portal</a>
+            <a href="#how-it-works" class="btn btn-outline-light btn-lg btn-cta"><i class="fas fa-question-circle me-2"></i>Learn More</a>
+        </div>
     </section>
 
-    <main class="grid">
- 
- 
- 
-    </main>
+    <div class="container my-5">
+        <!-- Statistics Section -->
+        <section id="statistics" class="text-center">
+            <h2 class="section-title">System Status at a Glance</h2>
+            <p class="section-subtitle">Live statistics from our maintenance system.</p>
+            <?php if ($error_message): ?>
+                <div class="alert alert-warning"><?php echo htmlspecialchars($error_message); ?></div>
+            <?php else: ?>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-light">
+                            <div class="card-body">
+                                <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                                <h3 class="card-title"><?php echo number_format($total_reports); ?></h3>
+                                <p class="text-muted">Total Reports Filed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-light">
+                            <div class="card-body">
+                                <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
+                                <h3 class="card-title"><?php echo number_format($pending_reports); ?></h3>
+                                <p class="text-muted">Pending Action</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-light">
+                            <div class="card-body">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <h3 class="card-title"><?php echo number_format($resolved_reports); ?></h3>
+                                <p class="text-muted">Issues Resolved</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </section>
 
-    <footer>
-        &copy; <?= date('Y') ?> Project Team. All rights reserved.
+        <hr class="my-5">
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="text-center">
+            <h2 class="section-title">A Streamlined Process</h2>
+            <p class="section-subtitle">Our system simplifies maintenance management from start to finish.</p>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-plus-circle"></i></div>
+                        <h5>1. Create Report</h5>
+                        <p>Administrators identify an issue and create a detailed report, selecting the required expertise.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-user-cog"></i></div>
+                        <h5>2. Auto-Assign</h5>
+                        <p>The system intelligently assigns the task to the least busy staff member with the correct skill set.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-tasks"></i></div>
+                        <h5>3. Track & Resolve</h5>
+                        <p>Staff track progress, add evidence, and mark tasks as resolved, keeping the system updated in real-time.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="footer mt-auto">
+        <div class="container">
+            <span>© UTeM Maintenance System <?php echo date("Y"); ?> | For Internal Use</span>
+        </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

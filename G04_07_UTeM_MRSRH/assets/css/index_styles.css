@@ -1,0 +1,84 @@
+/* --- Styles for Public Landing Page (index.php) --- */
+
+body.landing-page {
+    background-color: #ffffff; /* A clean white background */
+}
+body.landing-page .footer {
+    background-color: #1c2833; /* A different dark for landing page footer */
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, rgba(0, 91, 179, 0.9), rgba(0, 60, 130, 0.95)), url('https://images.unsplash.com/photo-1556912173-3c43d3425a2a?q=80&w=2070&auto=format&fit=crop') center center/cover no-repeat;
+    color: white;
+    padding: 6rem 1rem; /* More padding for a bigger feel */
+    text-align: center;
+    margin-bottom: 2.5rem;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); /* Angled bottom */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+.hero-section .lead {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.hero-section .btn-cta { /* Call to action buttons */
+    font-size: 1.1rem;
+    padding: 0.75rem 1.75rem;
+    margin: 0.5rem;
+    border-radius: 50rem; /* Pill shape */
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    border-width: 2px;
+}
+.hero-section .btn-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+/* "How It Works" Section */
+.feature-card {
+    border: none;
+    background: none;
+    text-align: center;
+    padding: 1.5rem;
+}
+.feature-card .feature-icon {
+    font-size: 3rem;
+    color: var(--bs-primary);
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+.feature-card:hover .feature-icon {
+    transform: scale(1.2) rotate(10deg);
+}
+.feature-card h5 {
+    font-weight: 600;
+    color: #34495e;
+}
+.feature-card p {
+    color: #6c757d;
+}
+
+/* Section Title Styling */
+.section-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #34495e;
+}
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 3rem;
+}
