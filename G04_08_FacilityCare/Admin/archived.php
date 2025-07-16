@@ -85,9 +85,7 @@ if (!isset($_SESSION['user_id'])) {
                         <!-- <button type="button" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-download me-1"></i> Export
                         </button> -->
-                        <button type="button" class="btn btn-sm btn-danger me-2">
-                            <i class="bi bi-trash me-1"></i> Empty Archive
-                        </button>
+                     
                     </div>
                 </div>
 
@@ -222,9 +220,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     <a href="../backend/process_unarchived.php?id=<?= $report['report_id'] ?>" class="btn btn-sm btn-outline-success me-1" title="Restore">
                                                         <i class="bi bi-box-arrow-up"></i>
                                                     </a>
-                                                    <a href="deleteReport.php?id=<?= $report['report_id'] ?>" class="btn btn-sm btn-outline-danger me-1" title="Delete">
-                                                        <i class="bi bi-trash"></i>
-                                                    </a>
+                                                   
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
