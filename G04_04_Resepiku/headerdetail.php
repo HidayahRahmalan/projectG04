@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ResepiKu - Ayam Masak Merah</title>
+  <title>ResepiKu</title>
   <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
@@ -156,7 +156,7 @@
     <a href="homepage.php" class="logo">ResepiKu</a>
     <nav>
       <a href="homepage.php">Laman Utama</a>
-      <a href="notification.php">Notifikasi</a>
+      <a href="notifications.php">Notifikasi</a>
       <a href="upload.php">Kongsi Resepi</a>
       <a href="logout.php" onclick="return confirm('Anda pasti ingin log keluar?')">Log Keluar</a>
     </nav>

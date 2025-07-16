@@ -7,7 +7,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ResepiKu - Home</title>
-  <link rel="stylesheet" href="styles.css" />
+  <!--<link rel="stylesheet" href="styles.css" /> -->
   <style>
     /* Center the filter and search bars together */
     .top-bar-container {

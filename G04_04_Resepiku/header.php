@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ResepiKu - Home</title>
-  <link rel="stylesheet" href="styles.css" />
+  <!--<link rel="stylesheet" href="styles.css" /> -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -120,8 +120,7 @@
           <a href="other.php">Other</a>
         </div>
       </div>
-      <a href="notifications.php" style="position: relative;">
-        Notifikasi <span id="notifCount">0</span>
+      <a href="notifications.php" style="position: relative;"> Notifikasi <span id="notifCount">0</span>
       </a>
       <a href="upload.php">Kongsi Resepi</a>
       <a href="logout.php" onclick="return confirm('Anda pasti ingin log keluar?')">Log Keluar</a>

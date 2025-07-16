@@ -257,20 +257,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="dropdown">
         <span>Jenis</span>
         <div class="dropdown-content">
-          <a href="Local.html">Local Cuisine</a>
-          <a href="western.html">Western Cuisine</a>
-          <a href="japanese.html">Japanese Cuisine</a>
-          <a href="chinese.html">Chinese Cuisine</a>
-          <a href="korean.html">Korean Cuisine</a>
-          <a href="dessert.html">Dessert</a>
-          <a href="beverages.html">Beverages</a>
-          <a href="other.html">Other</a>
+          <a href="Local.php">Local Cuisine</a>
+          <a href="western.php">Western Cuisine</a>
+          <a href="japanese.php">Japanese Cuisine</a>
+          <a href="chinese.php">Chinese Cuisine</a>
+          <a href="korean.php">Korean Cuisine</a>
+          <a href="dessert.php">Dessert</a>
+          <a href="beverages.php">Beverages</a>
+          <a href="other.php">Other</a>
         </div>
       </div>
-      <a href="notifications.html">Notifikasi</a>
-      <a href="login.html">Log Masuk</a>
-      <a href="register.html">Daftar</a>
-      <a href="upload-recipe.html">Kongsi Resepi</a>
+      <a href="notifications.php">Notifikasi</a>
+      <a href="index.php">Log Masuk</a>
+      <a href="register.php">Daftar</a>
+      <a href="upload.php">Kongsi Resepi</a>
     </nav>
   <main>
     <div class="form-container">
