@@ -274,10 +274,7 @@ $staffUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <i class="bi bi-eye"></i>
                                                 </button>
 
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete"
-                                                    data-id="<?= $staff['user_id'] ?>">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                            
                                             </td>
 
                                         </tr>
