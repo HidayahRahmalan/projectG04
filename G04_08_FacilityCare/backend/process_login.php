@@ -1,7 +1,7 @@
-<?php
-// Start session with default name first
-session_start();
 
+
+<?php
+// Email & password form submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     require_once '../connection.php';
 
@@ -9,6 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     if (empty($email) || empty($password)) {
+        session_start();
         $_SESSION['login_error'] = "Please fill in both email and password.";
         header("Location: ../login.php");
         exit();
@@ -20,12 +21,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $stmt->fetch();
 
         if (!$user) {
+            session_start();
             $_SESSION['login_error'] = "No user found with that email address.";
             header("Location: ../login.php");
             exit();
         }
 
         if (!password_verify($password, $user['password'])) {
+            session_start();
             $_SESSION['login_error'] = "Incorrect password. Please try again.";
             header("Location: ../login.php");
             exit();
@@ -33,58 +36,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Detect user role from user_id's first letter
         $firstChar = strtoupper(substr($user['user_id'], 0, 1));
-
-        // Determine redirect URL and session name
-        $sessionName = '';
-        $redirect = '';
-
         switch ($firstChar) {
             case 'A':
-                $sessionName = "admin_session";
+                session_name("admin_session");
                 $redirect = "../Admin/dashboard.php";
                 break;
             case 'S':
-                $sessionName = "staff_session";
-                $redirect = "../homepagestaff.php";
+                session_name("staff_session");
+                $redirect = "../homepageStaff.php";
                 break;
             case 'T':
-                $sessionName = "technician_session";
+                session_name("technician_session");
                 $redirect = "../technician/dashboardTech.php";
                 break;
             default:
+                session_start();
                 $_SESSION['login_error'] = "Unrecognized user role.";
                 header("Location: ../login.php");
                 exit();
         }
 
-        // Close current session
-        session_write_close();
-
-        // Set new session name and restart session
-        session_name($sessionName);
+        // Start session after session_name
         session_start();
-
-        // Set session variables
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['name'] = $user['name'];
         $_SESSION['email'] = $user['email'];
 
+        // Optional: set technician_id if role is technician
         if ($firstChar === 'T') {
             $_SESSION['technician_id'] = $user['user_id'];
         }
 
-        // // Success message for modal
-        // $_SESSION['success_message'] = "Welcome back, " . $user['name'] . "!";
-
+        // Redirect to appropriate dashboard
         header("Location: $redirect");
         exit();
+
     } catch (PDOException $e) {
+        session_start();
         $_SESSION['login_error'] = "Database error: " . $e->getMessage();
         header("Location: ../login.php");
         exit();
     }
-} else {
-    $_SESSION['login_error'] = "Invalid request method.";
-    header("Location: ../login.php");
-    exit();
 }
