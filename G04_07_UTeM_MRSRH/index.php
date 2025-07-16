@@ -145,6 +145,68 @@ if ($conn && !$conn->connect_error) {
                 </div>
             </div>
         </section>
+        
+
+        <!-- Resume / Contributors Section -->
+<section id="contributors" class="text-center my-5">
+    <h2 class="section-title">Meet the Contributors</h2>
+    <p class="section-subtitle">Our system is developed and maintained by dedicated team members.</p>
+    <div class="row g-4">
+        <!-- Resume 1 -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-light">
+                <img src="uploads/image/amin.jpg" class="card-img-top" alt="Person 1">
+                <div class="card-body">
+                    <h5 class="card-title">Mohamad Zikry Amin</h5>
+                    <p class="card-text">
+                     Final year database management student with strong interest in data modeling, SQL optimization, and system integration. 
+                     Played a key role in designing and managing the database architecture for the UTeM Maintenance System.
+                     </p>
+                     <p class="text-muted"><i class="fas fa-envelope me-2"></i>b032210278@student.utem.edu.my</p>
+                     <a href="uploads/image/resume zikry (1).pdf" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="fas fa-file-pdf me-1"></i>View Resume
+                     </a>
+                </div>
+             </div>
+        </div>
+
+        <!-- Resume 2 -->
+        <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-light">
+        <img src="uploads/image/farhan.jpg" class="card-img-top" alt="Person 1">
+        <div class="card-body">
+            <h5 class="card-title">Muhammad Farhan</h5>
+            <p class="card-text">
+                Final year database management student with strong interest in data modeling, SQL optimization, and system integration. 
+                Played a key role in designing and managing the database architecture for the UTeM Maintenance System.
+            </p>
+            <p class="text-muted"><i class="fas fa-envelope me-2"></i>b032210298@student.utem.edu.my</p>
+            <a href="uploads/image/Resume-Muhammad Farhan.pdf" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                <i class="fas fa-file-pdf me-1"></i>View Resume
+            </a>
+        </div>
+        </div>
+        </div>
+
+        <!-- Resume 3 -->
+       <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-light">
+        <img src="uploads/image/syazwan.jpg" class="card-img-top" alt="Person 1">
+        <div class="card-body">
+            <h5 class="card-title">Muhammad Syazwan</h5>
+            <p class="card-text">
+                Final year database management student with strong interest in data modeling, SQL optimization, and system integration. 
+                Played a key role in designing and managing the database architecture for the UTeM Maintenance System.
+            </p>
+            <p class="text-muted"><i class="fas fa-envelope me-2"></i>b032210370@student.utem.edu.my</p>
+            <a href="uploads/image/RESUME (MUHAMMAD SYAZWAN BIN NASARUDDIN).pdf" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                <i class="fas fa-file-pdf me-1"></i>View Resume
+            </a>
+        </div>
+        </div>
+        </div>
+    </div>
+    </section>
 
     </div>
 
