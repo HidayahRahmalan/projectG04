@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResepiKu - Daftar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff8f0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .register-container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #ff6347;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff6347;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e5533d;
+    }
+
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <div class="register-container">
+      <h2>Daftar Akaun</h2>
+      <form action="register.php" method="POST">
+        <label>Nama Penuh</label>
+        <input type="text" name="fullname" required>
+
+        <label>Peranan</label>
+        <select name="role" required>
+          <option value="">-- Pilih Peranan --</option>
+          <option value="Chef">Chef</option>
+          <option value="Student">Student</option>
+        </select>
+
+        <label>Nama Pengguna</label>
+        <input type="text" name="username" required>
+
+        <label>Emel</label>
+        <input type="email" name="email" required>
+
+        <label>Kata Laluan</label>
+        <input type="password" name="password" required>
+
+        <button type="submit">Daftar</button>
+      </form>
+      <p>Sudah ada akaun? <a href="login.html">Log Masuk</a></p>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 ResepiKu. All rights reserved.
+  </footer>
+
+  <script>
+    function requireLogin(action) {
+      const isLoggedIn = false;
+
+      if (!isLoggedIn) {
+        alert("Sila log masuk atau daftar terlebih dahulu untuk mengakses bahagian ini.");
+        window.location.href = "login.html";
+      } else {
+        if (action === 'share') {
+          window.location.href = "upload-recipe.html";
+        } else if (action === 'notification') {
+          window.location.href = "notifications.html";
+        }
+      }
+    }
+  </script>
+
+</body>
+
+</html>

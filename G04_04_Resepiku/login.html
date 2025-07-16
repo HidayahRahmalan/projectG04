@@ -1,34 +1,3 @@
-<?php
-session_start();
-include 'connection.php'; // Ensure this file defines $conn
-include 'headerlogin.php';
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (!empty($_POST["username"]) && !empty($_POST["password"])) {
-        $username = $_POST["username"];
-        $password = md5($_POST["password"]); // MD5 hashing
-
-        $stmt = $conn->prepare("SELECT * FROM user WHERE username = ? AND password = ?");
-        $stmt->bind_param("ss", $username, $password);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 1) {
-            $_SESSION["username"] = $username;
-            $stmt->close();
-            $conn->close();
-            header("Location: homepage.php");
-            exit();
-        } else {
-            echo "<script>alert('Nama pengguna atau kata laluan salah.');</script>";
-        }
-        $stmt->close();
-        $conn->close();
-    } else {
-        echo "<script>alert('Sila isi nama pengguna dan kata laluan.');</script>";
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -133,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <main>
     <div class="login-container">
       <h2>Log Masuk</h2>
-      <form method="POST" action="">
+      <form action="login.php" method="POST">
         <label for="username">Nama Pengguna</label>
         <input type="text" id="username" name="username" required>
 
@@ -144,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </form>
 
       <div class="forgot-link">
-        <a href="#" onclick="toggleReset()">Lupa kata laluan?</a>
+        <a href="#">Lupa kata laluan?</a>
       </div>
     </div>
 
@@ -170,13 +139,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       document.getElementById('resetSection').style.display = 'block';
     }
 
+    function loginUser(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username === "user" && password === "pass") {
+        alert("Log masuk berjaya!");
+        window.location.href = "index.html";
+      } else {
+        alert("Nama pengguna atau kata laluan salah.");
+      }
+    }
+
     function resetPassword(event) {
       event.preventDefault();
       const email = document.getElementById('resetEmail').value;
       const newPassword = document.getElementById('newPassword').value;
       alert("Kata laluan berjaya ditetapkan semula untuk: " + email);
     }
+
+    function requireLogin(action) {
+      const isLoggedIn = false;
+
+      if (!isLoggedIn) {
+        alert("Sila log masuk atau daftar terlebih dahulu untuk mengakses bahagian ini.");
+        window.location.href = "login.html";
+      } else {
+        if (action === 'share') {
+          window.location.href = "upload-recipe.html";
+        } else if (action === 'notification') {
+          window.location.href = "notifications.html";
+        }
+      }
+    }
   </script>
 
 </body>
+
 </html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResepiKu - Home</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff8f0;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    header {
+      background-color: #ff6347;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    nav a, nav .dropdown {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .dropdown {
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #fff;
+      color: black;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+
+    .dropdown-content a {
+      color: black;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .filter-bar {
+      margin: 20px auto;
+      text-align: center;
+    }
+
+    .filter-bar select {
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin: 0 10px 10px 10px;
+    }
+
+    .search-bar {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input[type="text"] {
+      width: 60%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .recipe-card {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .recipe-card:hover {
+      transform: scale(1.02);
+    }
+
+    .recipe-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .recipe-card .card-content {
+      padding: 15px;
+    }
+
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+    }
+
+    #notifCount {
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      position: absolute;
+      top: -8px;
+      right: -12px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="homepage.html" style="text-decoration: none; color: white;">
+      <h1>ResepiKu</h1>
+    </a>
+    <nav>
+      <div class="dropdown">
+        <span>Jenis</span>
+        <div class="dropdown-content">
+          <a href="Local.html">Local Cuisine</a>
+          <a href="western.html">Western Cuisine</a>
+          <a href="japanese.html">Japanese Cuisine</a>
+          <a href="chinese.html">Chinese Cuisine</a>
+          <a href="korean.html">Korean Cuisine</a>
+          <a href="dessert.html">Dessert</a>
+          <a href="beverages.html">Beverages</a>
+          <a href="other.html">Other</a>
+        </div>
+      </div>
+      <a href="#" onclick="requireLogin('notification')" style="position: relative;">
+        Notifikasi <span id="notifCount">0</span>
+      </a>
+      <a href="login.html">Log Masuk</a>
+      <a href="register.html">Daftar</a>
+      <a href="#" onclick="requireLogin('share')">Kongsi Resepi</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="filter-bar">
+      <select id="categoryFilter" onchange="filterByCategory()">
+        <option value="all">-- Pilih Kategori --</option>
+        <option value="Halal">Halal</option>
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Vegan">Vegan</option>
+        <option value="High-Protein">High-Protein</option>
+        <option value="Gluten-Free">Gluten-Free</option>
+        <option value="Dairy-Free">Dairu-Free</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Cari nama resepi..." onkeyup="filterRecipes()">
+    </div>
+
+    <div class="recipe-grid" id="recipeContainer">
+      <div class="recipe-card" data-category="Local Cuisine" onclick="viewRecipe('ayam-masak-merah')">
+        <img src="images/ayam-masak-merah.jpg" alt="Ayam Masak Merah">
+        <div class="card-content">
+          <h3>Ayam Masak Merah</h3>
+          <p>Resepi tradisional Melayu yang penuh rasa.</p>
+        </div>
+      </div>
+
+      <div class="recipe-card" data-category="Western Cuisine">
+        <img src="images/spaghetti.jpg" alt="Spaghetti Carbonara">
+        <div class="card-content">
+          <h3>Spaghetti Carbonara</h3>
+          <p>Masakan barat berkrim dan lazat.</p>
+        </div>
+      </div>
+
+      <div class="recipe-card" data-category="Dessert">
+        <img src="images/cake.jpg" alt="Chocolate Cake">
+        <div class="card-content">
+          <h3>Chocolate Cake</h3>
+          <p>Kek coklat lembap untuk pencuci mulut.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 ResepiKu. All rights reserved.
+  </footer>
+
+  <script>
+    function viewRecipe(recipeId) {
+      window.location.href = `detail1.html?id=${recipeId}`;
+    }
+
+    function filterRecipes() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const cards = document.querySelectorAll(".recipe-card");
+
+      cards.forEach(card => {
+        const title = card.querySelector("h3").innerText.toLowerCase();
+        card.style.display = title.includes(input) ? "block" : "none";
+      });
+    }
+
+    function filterByCategory() {
+      const selectedCategory = document.getElementById("categoryFilter").value;
+      const cards = document.querySelectorAll(".recipe-card");
+
+      cards.forEach(card => {
+        const category = card.getAttribute("data-category");
+        if (selectedCategory === "all" || category === selectedCategory) {
+          card.style.display = "block";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+
+    function requireLogin(action) {
+      const isLoggedIn = false; // Replace with real auth check
+      if (!isLoggedIn) {
+        alert("Sila log masuk atau daftar terlebih dahulu untuk mengakses bahagian ini.");
+        window.location.href = "login.html";
+      } else {
+        if (action === 'share') {
+          window.location.href = "upload-recipe.html";
+        } else if (action === 'notification') {
+          window.location.href = "notifications.html";
+        }
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const notifCount = document.getElementById("notifCount");
+      const count = 2; // Replace with actual notification count
+      if (count > 0) {
+        notifCount.textContent = count;
+        notifCount.style.display = "inline-block";
+      } else {
+        notifCount.style.display = "none";
+      }
+    });
+  </script>
+</body>
+
+</html>
