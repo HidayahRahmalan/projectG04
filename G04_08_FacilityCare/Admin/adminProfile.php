@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!empty($password)) {
                 if (strlen($password) < 8) {
                     $_SESSION['password_error'] = "Password must be at least 8 characters";
-                    header("Location: profileAdmin.php");
+                    header("Location: adminProfile.php");
                     exit();
                 }
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$adminId]);
             $admin = $stmt->fetch();
 
-            header("Location: profileAdmin.php");
+            header("Location: adminProfile.php");
             exit();
         } catch (PDOException $e) {
             $_SESSION['profile_error'] = "Database error: " . $e->getMessage();
