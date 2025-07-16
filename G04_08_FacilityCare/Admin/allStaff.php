@@ -1,4 +1,3 @@
-ni kat allStaff.php. aku betulkan pagination kat sini.
 
 <?php
 session_name("admin_session");
