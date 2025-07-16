@@ -1,5 +1,7 @@
 <?php
-require_once '../backend/process_allReports.php';
+session_name("admin_session");
+session_start();
+require_once '../connection.php';
 
 // Check if admin is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -7,41 +9,148 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-if (isset($_GET['archive']) && is_numeric($_GET['archive']) && isset($_SESSION['user_id'])) {
-    $archiveId = (int)$_GET['archive'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_tech_id'])) {
+    $techId = $_POST['delete_tech_id']; // No intval()
 
-    // Check if already archived
-    $stmt = $pdo->prepare("SELECT archive FROM report WHERE report_id = ?");
-    $stmt->execute([$archiveId]);
-    $isArchived = $stmt->fetchColumn();
+    try {
+        // If you have child tables, delete them first (optional)
+        // $pdo->prepare("DELETE FROM technician_speciality WHERE technician_id = ?")->execute([$techId]);
 
-    if (!$isArchived) {
-        // Only update the archive column in report table
-        $update = $pdo->prepare("UPDATE report SET archive = 1 WHERE report_id = ?");
-        $update->execute([$archiveId]);
+        $stmt = $pdo->prepare("DELETE FROM technician WHERE technician_id = ?");
+        $stmt->execute([$techId]);
+
+        $stmt2 = $pdo->prepare("DELETE FROM user WHERE user_id = ?");
+        $stmt2->execute([$techId]);
+
+        $_SESSION['delete_success'] = true;
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } catch (Exception $e) {
+        $_SESSION['delete_error'] = "Failed to delete technician.";
     }
-
-    // Redirect to remove archive param
-    header("Location: allReports.php");
-    exit();
 }
 
-if (isset($_GET['archive'])) {
-    require_once '../connection.php';
-    $reportId = $_GET['archive'];
+// Pagination setup
+$limit = 5;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
 
-    $stmt = $pdo->prepare("UPDATE report SET archive = 1 WHERE report_id = ?");
-    $stmt->execute([$reportId]);
+// Fetch specialties from DB
+$specialties = $pdo->query("SELECT speciality_id, speciality_name FROM speciality")->fetchAll(PDO::FETCH_ASSOC);
 
-    // Optional: Log
-    $logStmt = $pdo->prepare("
-        INSERT INTO statuslog (report_id, status, notes, timestamp, changed_by)
-        VALUES (?, 'archive', 'Archived by user', NOW(), ?)
+function getTechnicianSpecialties($pdo, $technicianId)
+{
+    $stmt = $pdo->prepare("
+        SELECT s.speciality_name 
+        FROM technician_speciality ts 
+        JOIN speciality s ON ts.speciality_id = s.speciality_id 
+        WHERE ts.technician_id = ?
     ");
-    $logStmt->execute([$reportId, $_SESSION['user_id'] ?? 'system']);
+    $stmt->execute([$technicianId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
 
-    header("Location: process_archived.php?success=1");
-    exit();
+function getInProgressJobCount($pdo, $technicianId)
+{
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) AS job_count
+        FROM report r
+        JOIN (
+            SELECT s1.report_id, s1.status
+            FROM statuslog s1
+            INNER JOIN (
+                SELECT report_id, MAX(timestamp) AS max_time
+                FROM statuslog
+                GROUP BY report_id
+            ) s2 ON s1.report_id = s2.report_id AND s1.timestamp = s2.max_time
+            WHERE s1.status = 'in_progress'
+        ) latest_status ON latest_status.report_id = r.report_id
+        WHERE r.technician_id = ? AND r.archive = 0
+    ");
+    $stmt->execute([$technicianId]);
+    return $stmt->fetchColumn();
+}
+
+$technicians = $pdo->query("
+    SELECT 
+        u.user_id,
+        u.name,
+        u.email,
+        t.phone_number,
+        t.technician_status,
+        t.profile_photo
+    FROM user u
+    JOIN technician t ON u.user_id = t.technician_id
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$statusFilter = $_GET['status'] ?? '';
+$specialtyFilter = $_GET['specialty'] ?? '';
+$searchQuery = $_GET['search'] ?? '';
+
+// Pagination Setup
+$limit = 5; // Rekod per page
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$sql = "
+    SELECT 
+        u.user_id,
+        u.name,
+        u.email,
+        t.phone_number,
+        t.technician_status,
+        t.profile_photo
+    FROM user u
+    JOIN technician t ON u.user_id = t.technician_id
+";
+
+$conditions = [];
+$params = [];
+
+if ($statusFilter !== '') {
+    $conditions[] = "t.technician_status = :status";
+    $params[':status'] = $statusFilter;
+}
+
+if ($searchQuery !== '') {
+    $conditions[] = "(u.name LIKE :search OR u.user_id LIKE :search OR u.email LIKE :search)";
+    $params[':search'] = '%' . $searchQuery . '%';
+}
+
+if (!empty($conditions)) {
+    $sql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+
+// Get total count for pagination
+$countSql = "SELECT COUNT(*) FROM user u JOIN technician t ON u.user_id = t.technician_id";
+if (!empty($conditions)) {
+    $countSql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($params);
+$totalTechnicians = $countStmt->fetchColumn();
+$totalPages = ceil($totalTechnicians / $limit);
+
+// Add LIMIT OFFSET to main query
+$sql .= ' LIMIT :limit OFFSET :offset';
+$technicianStmt = $pdo->prepare($sql);
+
+// Bind all filter params
+foreach ($params as $key => $value) {
+    $technicianStmt->bindValue($key, $value);
+}
+$technicianStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$technicianStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$technicianStmt->execute();
+
+$technicians = $technicianStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Later filter specialty (since it's in another table)
+if ($specialtyFilter !== '') {
+    $technicians = array_filter($technicians, function ($tech) use ($pdo, $specialtyFilter) {
+        $specialties = getTechnicianSpecialties($pdo, $tech['user_id']);
+        return in_array($specialtyFilter, $specialties);
+    });
 }
 
 ?>
@@ -52,11 +161,45 @@ if (isset($_GET['archive'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Reports - Admin Panel</title>
+    <title>Technicians - Admin Panel</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/styleAdmin.css">
+    <style>
+        .tech-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .specialty-badge {
+            font-size: 0.75rem;
+            margin-right: 5px;
+        }
+
+        .status-active {
+            background-color: #d3f9d8;
+            color: #0a5200;
+        }
+
+        .status-inactive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .rating-star {
+            color: #ffc107;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--admin-primary);
+            border-color: var(--admin-primary);
+        }
+    </style>
+
 </head>
 
 <body>
@@ -118,278 +261,471 @@ if (isset($_GET['archive'])) {
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">All Maintenance Reports</h1>
+                    <h1 class="h2">Technicians Management</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <!-- <button class="btn btn-sm btn-outline-secondary me-2">
+                        <!-- <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="bi bi-download me-1"></i> Export
                         </button> -->
-                        <!-- <button class="btn btn-sm btn-primary">
-                            <i class="bi bi-plus-lg me-1"></i> New Report
-                        </button> -->
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addTechModal">
+                            <i class="bi bi-plus-lg me-1"></i> Add Technician
+                        </button>
                     </div>
                 </div>
+
+                <!-- Add Technician Modal -->
+                <form action="../backend/add_technician.php" method="POST" enctype="multipart/form-data">
+                    <div class="modal fade" id="addTechModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content shadow border-0">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Add New Technician</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Full Name*</label>
+                                            <input type="text" class="form-control" name="name" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Email*</label>
+                                            <input type="email" class="form-control" name="email" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Phone*</label>
+                                            <input type="tel" class="form-control" name="phone" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Specialties*</label>
+                                        <select class="form-select" name="specialties[]" multiple required>
+                                            <?php foreach ($specialties as $spec): ?>
+                                                <option value="<?= $spec['speciality_id'] ?>"><?= htmlspecialchars($spec['speciality_name']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Status*</label>
+                                            <select class="form-select" name="technician_status" required>
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Profile Photo</label>
+                                            <input type="file" class="form-control" name="profile_photo" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Add Technician</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
 
                 <!-- Filters Card -->
                 <div class="card filter-card mb-4">
                     <div class="card-body">
                         <form class="row g-3" method="GET" action="">
-                            <div class="col-md-3">
-                                <label for="statusFilter" class="form-label">Status</label>
-                                <select id="statusFilter" name="status" class="form-select">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending" <?= (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'selected' : '' ?>>Pending</option>
-                                    <option value="open" <?= (isset($_GET['status']) && $_GET['status'] == 'open') ? 'selected' : '' ?>>Open</option>
-                                    <option value="in_progress" <?= (isset($_GET['status']) && $_GET['status'] == 'in_progress') ? 'selected' : '' ?>>In Progress</option>
-                                    <option value="resolved" <?= (isset($_GET['status']) && $_GET['status'] == 'resolved') ? 'selected' : '' ?>>Resolved</option>
+                            <div class="col-md-4">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status">
+                                    <option value="" <?= (!isset($_GET['status']) || $_GET['status'] === '') ? 'selected' : '' ?>>All Statuses</option>
+                                    <option value="active" <?= (isset($_GET['status']) && $_GET['status'] === 'active') ? 'selected' : '' ?>>Active</option>
+                                    <option value="inactive" <?= (isset($_GET['status']) && $_GET['status'] === 'inactive') ? 'selected' : '' ?>>Inactive</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-3">
-                                <label for="categoryFilter" class="form-label">Category</label>
-                                <select id="categoryFilter" name="category" class="form-select">
-                                    <option value="">All Categories</option>
-                                    <option value="Plumbing" <?= (isset($_GET['category']) && $_GET['category'] == 'Plumbing') ? 'selected' : '' ?>>Plumbing</option>
-                                    <option value="Electrical" <?= (isset($_GET['category']) && $_GET['category'] == 'Electrical') ? 'selected' : '' ?>>Electrical</option>
-                                    <option value="HVAC" <?= (isset($_GET['category']) && $_GET['category'] == 'HVAC') ? 'selected' : '' ?>>HVAC</option>
-                                    <option value="Structural" <?= (isset($_GET['category']) && $_GET['category'] == 'Structural') ? 'selected' : '' ?>>Structural</option>
-                                    <option value="Cleaning" <?= (isset($_GET['category']) && $_GET['category'] == 'Cleaning') ? 'selected' : '' ?>>Cleaning</option>
+                            <div class="col-md-4">
+                                <label class="form-label">Specialty</label>
+                                <select class="form-select" name="specialty">
+                                    <option value="" <?= (!isset($_GET['specialty']) || $_GET['specialty'] === '') ? 'selected' : '' ?>>All Specialties</option>
+                                    <option value="Plumbing" <?= (isset($_GET['specialty']) && $_GET['specialty'] === 'Plumbing') ? 'selected' : '' ?>>Plumbing</option>
+                                    <option value="Electrical" <?= (isset($_GET['specialty']) && $_GET['specialty'] === 'Electrical') ? 'selected' : '' ?>>Electrical</option>
+                                    <option value="HVAC" <?= (isset($_GET['specialty']) && $_GET['specialty'] === 'HVAC') ? 'selected' : '' ?>>HVAC</option>
+                                    <option value="Structural" <?= (isset($_GET['specialty']) && $_GET['specialty'] === 'Structural') ? 'selected' : '' ?>>Structural</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-3">
-                                <label for="priorityFilter" class="form-label">Priority</label>
-                                <select id="priorityFilter" name="priority" class="form-select">
-                                    <option value="">All Priority Levels</option>
-                                    <option value="High" <?= (isset($_GET['priority']) && $_GET['priority'] == 'High') ? 'selected' : '' ?>>High</option>
-                                    <option value="Medium" <?= (isset($_GET['priority']) && $_GET['priority'] == 'Medium') ? 'selected' : '' ?>>Medium</option>
-                                    <option value="Low" <?= (isset($_GET['priority']) && $_GET['priority'] == 'Low') ? 'selected' : '' ?>>Low</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="dateFilter" class="form-label">Date Range</label>
-                                <select id="dateFilter" name="date" class="form-select" onchange="toggleCustomDateFields()">
-                                    <option value="">All Time</option>
-                                    <option value="today" <?= (isset($_GET['date']) && $_GET['date'] == 'today') ? 'selected' : '' ?>>Today</option>
-                                    <option value="this_week" <?= (isset($_GET['date']) && $_GET['date'] == 'this_week') ? 'selected' : '' ?>>This Week</option>
-                                    <option value="this_month" <?= (isset($_GET['date']) && $_GET['date'] == 'this_month') ? 'selected' : '' ?>>This Month</option>
-                                    <option value="custom" <?= (isset($_GET['date']) && $_GET['date'] == 'custom') ? 'selected' : '' ?>>Custom Range</option>
-                                </select>
-
-                                <div class="row mt-2" id="customDateFields" style="display: none;">
-                                    <div class="col-md-6">
-                                        <label for="startDate" class="form-label">Start Date</label>
-                                        <input type="date" id="startDate" name="start_date" class="form-control"
-                                            value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="endDate" class="form-label">End Date</label>
-                                        <input type="date" id="endDate" name="end_date" class="form-control"
-                                            value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>">
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-12">
-                                <div class="d-flex justify-content-end">
-                                    <a href="allReports.php" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                                    </a>
-                                    <button type="submit" class="btn btn-primary me-2">
-                                        <i class="bi bi-funnel me-1"></i> Apply Filters
-                                    </button>
-
-                                </div>
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-
-                <!-- Reports Table -->
-                <div class="card admin-card">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Reports List</h5>
-                        <div class="d-flex">
-                            <form method="GET" action="">
-                                <div class="input-group me-2" style="width: 250px;">
-                                    <input type="text" class="form-control" name="search" placeholder="Search reports..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                            <div class="col-md-4">
+                                <label class="form-label">Search</label>
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Search technicians..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                                     <button class="btn btn-outline-secondary" type="submit">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </div>
-                            </form>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-list-check me-1"></i> Columns
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <h6 class="dropdown-header">Show/Hide Columns</h6>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>ID</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Title</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Category</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Priority</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Status</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Reported By</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Date</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Actions</a></li>
-                                </ul>
                             </div>
-                        </div>
+                        </form>
                     </div>
+                </div>
+
+                <!-- Technicians Table -->
+                <div class="card admin-card">
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
-                                <thead class="table-light">
+                                <thead>
                                     <tr>
-                                        <th width="80">ID <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th>Title <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="120">Category <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="100">Priority <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="120">Status <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="150">Reported By <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="120">Date <i class="bi bi-arrow-down-up ms-1"></i></th>
-                                        <th width="150">Actions</th>
+                                        <th>No</th>
+                                        <th>Technician</th>
+                                        <th>Contact</th>
+                                        <th>Specialties</th>
+                                        <th>Status</th>
+                                        <th>Assigned Jobs</th>
+                                        <th></th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($reports as $report): ?>
-                                        <?php
-                                        $statusClass = match (strtolower($report['status'])) {
-                                            'in_progress' => 'progress',
-                                            'resolved'    => 'resolved',
-                                            'open'        => 'open',
-                                            default       => 'open'
-                                        };
-                                        ?>
-                                        <tr class="report-row">
-                                            <td class="fw-bold">#<?= htmlspecialchars($report['report_id']) ?></td>
-                                            <td><?= htmlspecialchars($report['title']) ?></td>
-                                            <td><?= htmlspecialchars($report['category']) ?></td>
-                                            <td>
-                                                <span class="badge urgency-<?= strtolower($report['priority']) ?>">
-                                                    <?= htmlspecialchars($report['priority']) ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="status-badge status-<?= $statusClass ?>">
-                                                    <?= ucwords(str_replace('_', ' ', strtolower($report['status']))) ?>
-                                                </span>
-                                            </td>
+                                    <?php foreach ($technicians as $index => $tech):
+                                        $specialties = getTechnicianSpecialties($pdo, $tech['user_id']);
+                                        $assignedJobs = getInProgressJobCount($pdo, $tech['user_id']);
+                                        echo "<!-- Technician: {$tech['user_id']}, In-Progress Jobs: {$assignedJobs} -->";
+
+                                        $rating = 4.5; // Placeholder
+                                        $maxJobs = 8;
+                                        $jobPercent = $maxJobs > 0 ? ($assignedJobs / $maxJobs) * 100 : 0;
+                                        $progressBarClass = $assignedJobs == 0 ? 'bg-secondary' : ($jobPercent < 50 ? 'bg-success' : 'bg-warning');
+                                        $statusClass = strtolower($tech['technician_status']) === 'active' ? 'status-active' : 'status-inactive';
+                                        $photoPath = !empty($tech['profile_photo']) ? '../' . $tech['profile_photo'] : '../images/tech_profile/default-avatar.png';
+                                    ?>
+                                        <tr>
+                                            <td>#<?= 1 + $index ?></td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <img src="https://via.placeholder.com/30" class="rounded-circle me-2" width="30" height="30">
-                                                    <span><?= htmlspecialchars($report['reported_by']) ?></span>
+                                                    <img src="<?= htmlspecialchars($photoPath) ?>" class="tech-avatar me-2" alt="Avatar" style="width:40px;height:40px;border-radius:50%;">
+                                                    <div>
+                                                        <h6 class="mb-0"><?= htmlspecialchars($tech['name']) ?></h6>
+                                                        <small class="text-muted"><?= htmlspecialchars($tech['user_id']) ?></small>
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td><?= date('d M Y', strtotime($report['created_at'])) ?></td>
                                             <td>
-                                                <a href="viewReport.php?id=<?= $report['report_id'] ?>&open=1" class="btn btn-sm btn-outline-primary me-1" title="View">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="editReports.php?id=<?= $report['report_id'] ?>" class="btn btn-sm btn-outline-success me-1" title="Assign">
-                                                    <i class="bi bi-person-plus"></i>
-                                                </a>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary"
-                                                    title="Archive"
+                                                <div>
+                                                    <small class="text-muted">Email:</small>
+                                                    <p class="mb-0"><?= htmlspecialchars($tech['email']) ?></p>
+                                                </div>
+                                                <div class="mt-1">
+                                                    <small class="text-muted">Phone:</small>
+                                                    <p class="mb-0"><?= htmlspecialchars($tech['phone_number']) ?></p>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <?php foreach ($specialties as $spec): ?>
+                                                    <span class="badge bg-primary specialty-badge"><?= htmlspecialchars($spec) ?></span>
+                                                <?php endforeach; ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge <?= $statusClass ?>"><?= htmlspecialchars($tech['technician_status']) ?></span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <small class="text-muted mb-1">Jobs: <?= $assignedJobs ?>/<?= $maxJobs ?></small>
+                                                    <div class="progress" style="height: 20px;">
+                                                        <div class="progress-bar <?= $progressBarClass ?>" role="progressbar"
+                                                            style="width: <?= min($jobPercent, 100) ?>%;"
+                                                            aria-valuenow="<?= $assignedJobs ?>" aria-valuemin="0" aria-valuemax="<?= $maxJobs ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <!-- <div class="rating-star">
+                                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                        <i class="fas fa-star<?= $i <= floor($rating) ? '' : ($i - $rating < 1 ? '-half-alt' : ' far') ?>"></i>
+                                                    <?php endfor; ?>
+                                                    <span class="ms-1"><?= number_format($rating, 1) ?></span>
+                                                </div> -->
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1"
+                                                    title="View"
                                                     data-bs-toggle="modal"
-                                                    data-bs-target="#confirmArchiveModal"
-                                                    data-report-id="<?= $report['report_id'] ?>">
-                                                    <i class="bi bi-archive"></i>
+                                                    data-bs-target="#viewTechModal"
+                                                    data-id="<?= $tech['user_id'] ?>"
+                                                    data-name="<?= htmlspecialchars($tech['name']) ?>"
+                                                    data-email="<?= htmlspecialchars($tech['email']) ?>"
+                                                    data-phone="<?= htmlspecialchars($tech['phone_number']) ?>"
+                                                    data-status="<?= $tech['technician_status'] ?>"
+                                                    data-photo="<?= htmlspecialchars($photoPath) ?>">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning me-1"
+                                                    title="Edit"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editTechModal"
+                                                    data-id="<?= $tech['user_id'] ?>"
+                                                    data-name="<?= htmlspecialchars($tech['name']) ?>"
+                                                    data-email="<?= htmlspecialchars($tech['email']) ?>"
+                                                    data-phone="<?= htmlspecialchars($tech['phone_number']) ?>"
+                                                    data-status="<?= $tech['technician_status'] ?>"
+                                                    data-photo="<?= htmlspecialchars($photoPath) ?>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                    title="Delete"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteTechModal"
+                                                    data-id="<?= $tech['user_id'] ?>">
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
-
                             </table>
                         </div>
-
                         <!-- Pagination -->
-                        <nav aria-label="Reports pagination" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>">Previous</a>
-                                </li>
+                        <?php if ($totalPages > 1): ?>
+                            <nav aria-label="Technicians pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <?php if ($page > 1): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=<?= $page - 1 ?>">Previous</a>
+                                        </li>
+                                    <?php endif; ?>
 
-                                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                                    <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                                        <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"><?= $i ?></a>
-                                    </li>
-                                <?php endfor; ?>
+                                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                        <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                        </li>
+                                    <?php endfor; ?>
 
-                                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-
+                                    <?php if ($page < $totalPages): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=<?= $page + 1 ?>">Next</a>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </nav>
+                        <?php endif; ?>
                     </div>
                 </div>
             </main>
         </div>
     </div>
-    <div class="modal fade" id="confirmArchiveModal" tabindex="-1" aria-labelledby="confirmArchiveLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header" style="background-color: #95AEF1;">
-                    <h5 class="modal-title text-white" id="confirmArchiveLabel">Archive Report</h5>
+
+    <form action="../backend/edit_technician.php" method="POST" enctype="multipart/form-data">
+        <div class="modal fade" id="editTechModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content shadow border-0">
+                    <div class="modal-header bg-warning text-white">
+                        <h5 class="modal-title">Edit Technician</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Hidden ID -->
+                        <input type="hidden" name="technician_id" id="edit-tech-id">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Full Name*</label>
+                                <input type="text" class="form-control" name="name" id="edit-tech-name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email*</label>
+                                <input type="email" class="form-control" name="email" id="edit-tech-email" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone*</label>
+                                <input type="tel" class="form-control" name="phone" id="edit-tech-phone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status*</label>
+                                <select class="form-select" name="technician_status" id="edit-tech-status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Profile Photo</label>
+                            <img src="" id="tech-profile-preview" class="img-thumbnail mb-2" style="max-width: 150px;">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="modal fade" id="deleteTechModal" tabindex="-1" aria-labelledby="deleteTechModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTechModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete this technician?
+                        <input type="hidden" name="delete_tech_id" id="delete-tech-id">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewTechModal" tabindex="-1" aria-labelledby="viewTechModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTechModalLabel">Technician Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Name:</strong> <span id="view-tech-name"></span></p>
+                    <p><strong>Email:</strong> <span id="view-tech-email"></span></p>
+                    <p><strong>Phone:</strong> <span id="view-tech-phone"></span></p>
+                    <p><strong>Status:</strong> <span id="view-tech-status"></span></p>
+                    <p><strong>Photo:</strong><br>
+                        <img id="view-tech-photo" src="" alt="Photo" class="img-fluid rounded" style="max-height: 150px;">
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Technicians Data</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <p class="mb-2">Are you sure you want to archive this report?</p>
-                    <small class="text-muted">This will move the report out of the active list, but you can always view it later in the archive section.</small>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Format</label>
+                        <select class="form-select">
+                            <option>CSV (Excel)</option>
+                            <option>PDF</option>
+                            <option>Print</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Columns to Include</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="colName" checked>
+                            <label class="form-check-label" for="colName">Name</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="colContact" checked>
+                            <label class="form-check-label" for="colContact">Contact Info</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="colSpecialty" checked>
+                            <label class="form-check-label" for="colSpecialty">Specialties</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="colStatus" checked>
+                            <label class="form-check-label" for="colStatus">Status</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <a href="" id="confirmArchiveBtn" class="btn text-white" style="background-color: #95AEF1;">Yes, Archive</a>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Export</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        function toggleCustomDateFields() {
-            const dateFilter = document.getElementById('dateFilter');
-            const customDateDiv = document.getElementById('customDateRange');
-            if (dateFilter.value === 'custom') {
-                customDateDiv.style.display = 'block';
-            } else {
-                customDateDiv.style.display = 'none';
-            }
-        }
-        window.onload = toggleCustomDateFields;
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    </script>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var confirmModal = document.getElementById('confirmArchiveModal');
-            var confirmBtn = document.getElementById('confirmArchiveBtn');
+    <script>
+        const editModal = document.getElementById('editTechModal');
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
 
-            confirmModal.addEventListener('show.bs.modal', function(event) {
-                var button = event.relatedTarget;
-                var reportId = button.getAttribute('data-report-id');
-                confirmBtn.href = 'allReports.php?archive=' + reportId;
+            // Ambil data dari data-*
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const email = button.getAttribute('data-email');
+            const phone = button.getAttribute('data-phone');
+            const status = button.getAttribute('data-status');
+            const photo = button.getAttribute('data-photo');
+
+            // Isi ke dalam modal
+            document.getElementById('edit-tech-id').value = id;
+            document.getElementById('edit-tech-name').value = name;
+            document.getElementById('edit-tech-email').value = email;
+            document.getElementById('edit-tech-phone').value = phone;
+            document.getElementById('edit-tech-status').value = status;
+            document.getElementById('current-photo-name').textContent = photo ?? 'None';
+        });
+
+        document.querySelectorAll('[data-bs-target="#editTechModal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const photo = this.getAttribute('data-photo');
+                document.getElementById('tech-profile-preview').src = photo;
+                // Jangan ubah value input file sebab dia disabled / tiada pun
             });
         });
     </script>
 
     <script>
-        function toggleCustomDateFields() {
-            const dateFilter = document.getElementById("dateFilter").value;
-            const customDateFields = document.getElementById("customDateFields");
+        const viewModal = document.getElementById('viewTechModal');
+        viewModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
 
-            if (dateFilter === "custom") {
-                customDateFields.style.display = "flex";
-            } else {
-                customDateFields.style.display = "none";
-            }
-        }
+            // Get data from button
+            const name = button.getAttribute('data-name');
+            const email = button.getAttribute('data-email');
+            const phone = button.getAttribute('data-phone');
+            const status = button.getAttribute('data-status');
+            const photo = button.getAttribute('data-photo');
 
-        // Run this on page load (in case "custom" is pre-selected)
-        document.addEventListener("DOMContentLoaded", toggleCustomDateFields);
+            // Fill into modal
+            document.getElementById('view-tech-name').textContent = name;
+            document.getElementById('view-tech-email').textContent = email;
+            document.getElementById('view-tech-phone').textContent = phone;
+            document.getElementById('view-tech-status').textContent = status;
+            document.getElementById('view-tech-photo').src = photo;
+        });
+    </script>
+
+    <script>
+        const deleteModal = document.getElementById('deleteTechModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const techId = button.getAttribute('data-id');
+            document.getElementById('delete-tech-id').value = techId;
+        });
     </script>
 
 </body>
