@@ -9,6 +9,32 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_tech_id'])) {
+    $techId = $_POST['delete_tech_id']; // No intval()
+
+    try {
+        // If you have child tables, delete them first (optional)
+        // $pdo->prepare("DELETE FROM technician_speciality WHERE technician_id = ?")->execute([$techId]);
+
+        $stmt = $pdo->prepare("DELETE FROM technician WHERE technician_id = ?");
+        $stmt->execute([$techId]);
+
+        $stmt2 = $pdo->prepare("DELETE FROM user WHERE user_id = ?");
+        $stmt2->execute([$techId]);
+
+        $_SESSION['delete_success'] = true;
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } catch (Exception $e) {
+        $_SESSION['delete_error'] = "Failed to delete technician.";
+    }
+}
+
+// Pagination setup
+$limit = 5;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
 // Fetch specialties from DB
 $specialties = $pdo->query("SELECT speciality_id, speciality_name FROM speciality")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -61,6 +87,11 @@ $statusFilter = $_GET['status'] ?? '';
 $specialtyFilter = $_GET['specialty'] ?? '';
 $searchQuery = $_GET['search'] ?? '';
 
+// Pagination Setup
+$limit = 5; // Rekod per page
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
 $sql = "
     SELECT 
         u.user_id,
@@ -90,8 +121,28 @@ if (!empty($conditions)) {
     $sql .= ' WHERE ' . implode(' AND ', $conditions);
 }
 
+// Get total count for pagination
+$countSql = "SELECT COUNT(*) FROM user u JOIN technician t ON u.user_id = t.technician_id";
+if (!empty($conditions)) {
+    $countSql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($params);
+$totalTechnicians = $countStmt->fetchColumn();
+$totalPages = ceil($totalTechnicians / $limit);
+
+// Add LIMIT OFFSET to main query
+$sql .= ' LIMIT :limit OFFSET :offset';
 $technicianStmt = $pdo->prepare($sql);
-$technicianStmt->execute($params);
+
+// Bind all filter params
+foreach ($params as $key => $value) {
+    $technicianStmt->bindValue($key, $value);
+}
+$technicianStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$technicianStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$technicianStmt->execute();
+
 $technicians = $technicianStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Later filter specialty (since it's in another table)
@@ -101,6 +152,7 @@ if ($specialtyFilter !== '') {
         return in_array($specialtyFilter, $specialties);
     });
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -399,7 +451,16 @@ if ($specialtyFilter !== '') {
                                                 </div> -->
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-primary me-1" title="View" data-bs-toggle="modal" data-bs-target="#viewTechModal">
+                                                <button class="btn btn-sm btn-outline-primary me-1"
+                                                    title="View"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#viewTechModal"
+                                                    data-id="<?= $tech['user_id'] ?>"
+                                                    data-name="<?= htmlspecialchars($tech['name']) ?>"
+                                                    data-email="<?= htmlspecialchars($tech['email']) ?>"
+                                                    data-phone="<?= htmlspecialchars($tech['phone_number']) ?>"
+                                                    data-status="<?= $tech['technician_status'] ?>"
+                                                    data-photo="<?= htmlspecialchars($photoPath) ?>">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-warning me-1"
@@ -414,7 +475,11 @@ if ($specialtyFilter !== '') {
                                                     data-photo="<?= htmlspecialchars($photoPath) ?>">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                    title="Delete"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteTechModal"
+                                                    data-id="<?= $tech['user_id'] ?>">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -424,19 +489,29 @@ if ($specialtyFilter !== '') {
                             </table>
                         </div>
                         <!-- Pagination -->
-                        <nav aria-label="Technicians pagination" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
+                        <?php if ($totalPages > 1): ?>
+                            <nav aria-label="Technicians pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <?php if ($page > 1): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=<?= $page - 1 ?>">Previous</a>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                        <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                        </li>
+                                    <?php endfor; ?>
+
+                                    <?php if ($page < $totalPages): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=<?= $page + 1 ?>">Next</a>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </nav>
+                        <?php endif; ?>
                     </div>
                 </div>
             </main>
@@ -495,6 +570,47 @@ if ($specialtyFilter !== '') {
             </div>
         </div>
     </form>
+
+    <div class="modal fade" id="deleteTechModal" tabindex="-1" aria-labelledby="deleteTechModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTechModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete this technician?
+                        <input type="hidden" name="delete_tech_id" id="delete-tech-id">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewTechModal" tabindex="-1" aria-labelledby="viewTechModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTechModalLabel">Technician Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Name:</strong> <span id="view-tech-name"></span></p>
+                    <p><strong>Email:</strong> <span id="view-tech-email"></span></p>
+                    <p><strong>Phone:</strong> <span id="view-tech-phone"></span></p>
+                    <p><strong>Status:</strong> <span id="view-tech-status"></span></p>
+                    <p><strong>Photo:</strong><br>
+                        <img id="view-tech-photo" src="" alt="Photo" class="img-fluid rounded" style="max-height: 150px;">
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Export Modal -->
     <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
@@ -579,6 +695,36 @@ if ($specialtyFilter !== '') {
                 document.getElementById('tech-profile-preview').src = photo;
                 // Jangan ubah value input file sebab dia disabled / tiada pun
             });
+        });
+    </script>
+
+    <script>
+        const viewModal = document.getElementById('viewTechModal');
+        viewModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+
+            // Get data from button
+            const name = button.getAttribute('data-name');
+            const email = button.getAttribute('data-email');
+            const phone = button.getAttribute('data-phone');
+            const status = button.getAttribute('data-status');
+            const photo = button.getAttribute('data-photo');
+
+            // Fill into modal
+            document.getElementById('view-tech-name').textContent = name;
+            document.getElementById('view-tech-email').textContent = email;
+            document.getElementById('view-tech-phone').textContent = phone;
+            document.getElementById('view-tech-status').textContent = status;
+            document.getElementById('view-tech-photo').src = photo;
+        });
+    </script>
+
+    <script>
+        const deleteModal = document.getElementById('deleteTechModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const techId = button.getAttribute('data-id');
+            document.getElementById('delete-tech-id').value = techId;
         });
     </script>
 
