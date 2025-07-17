@@ -1,5 +1,4 @@
 <?php
-session_start();
 include('header.php');
 // Use lowercase 'user_id' for session variable
 $UserID = $_SESSION['UserID'];
