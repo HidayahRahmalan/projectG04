@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button type="submit">Create Account</button>
 </form>
 
-<p style="text-align:center;">Already have an account? <a href="login.php">Login here</a>.</p>
+<p style="text-align:center;">Already have an account? <a href="index.php">Login here</a>.</p>
 
 <script>
 // Toggle for password
