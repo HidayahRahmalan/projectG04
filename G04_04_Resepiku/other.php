@@ -186,7 +186,6 @@ $result = $stmt->get_result();
 </head>
 
 <body>
-  <header>
     <a href="homepage.html" style="text-decoration: none; color: white;">
       <h1>ResepiKu</h1>
     </a>
@@ -204,12 +203,11 @@ $result = $stmt->get_result();
           <a href="other.php">Other</a>
         </div>
       </div>
-      <a href="notifications.html">Notifikasi</a>
-      <a href="login.html">Log Masuk</a>
-      <a href="register.html">Daftar</a>
-      <a href="upload-recipe.html">Kongsi Resepi</a>
+      <a href="notifications.php">Notifikasi</a>
+      <a href="login.php">Log Masuk</a>
+      <a href="register.php">Daftar</a>
+      <a href="upload-recipe.php">Kongsi Resepi</a>
     </nav>
-  </header>
 
   <main>
     <h1 class="page-title">Other</h1>

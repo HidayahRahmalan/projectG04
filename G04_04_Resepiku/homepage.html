@@ -166,7 +166,7 @@
 </head>
 
 <body>
-    <a href="homepage.html" style="text-decoration: none; color: white;">
+    <a href="homepage.php" style="text-decoration: none; color: white;">
       <h1>ResepiKu</h1>
     </a>
     <nav>
@@ -186,8 +186,8 @@
       <a href="#" onclick="requireLogin('notification')" style="position: relative;">
         Notifikasi <span id="notifCount">0</span>
       </a>
-      <a href="login.html">Log Masuk</a>
-      <a href="register.html">Daftar</a>
+      <a href="index.php">Log Masuk</a>
+      <a href="register.php">Daftar</a>
       <a href="#" onclick="requireLogin('share')">Kongsi Resepi</a>
     </nav>
 
@@ -242,7 +242,7 @@
 
   <script>
     function viewRecipe(recipeId) {
-      window.location.href = `detail1.html?id=${recipeId}`;
+      window.location.href = `detail.php?id=${recipeId}`;
     }
 
     function filterRecipes() {

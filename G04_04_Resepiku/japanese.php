@@ -203,10 +203,10 @@ $result = $stmt->get_result();
           <a href="other.php">Other</a>
         </div>
       </div>
-      <a href="notifications.html">Notifikasi</a>
-      <a href="login.html">Log Masuk</a>
-      <a href="register.html">Daftar</a>
-      <a href="upload-recipe.html">Kongsi Resepi</a>
+      <a href="notifications.php">Notifikasi</a>
+      <a href="login.php">Log Masuk</a>
+      <a href="register.php">Daftar</a>
+      <a href="upload-recipe.php">Kongsi Resepi</a>
     </nav>
 
   <main>

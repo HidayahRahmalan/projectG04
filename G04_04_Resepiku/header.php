@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ResepiKu - Home</title>
-  <!--<link rel="stylesheet" href="styles.css" /> -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -88,20 +87,10 @@
     .dropdown:hover .dropdown-content {
       display: block;
     }
-
-    #notifCount {
-      background: red;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 12px;
-      position: absolute;
-      top: -8px;
-      right: -12px;
-    }
   </style>
 </head>
 <body>
+
   <header>
     <a href="homepage.php" style="text-decoration: none; color: white;">
       <h1>ResepiKu</h1>
@@ -120,23 +109,11 @@
           <a href="other.php">Other</a>
         </div>
       </div>
-      <a href="notifications.php" style="position: relative;"> Notifikasi <span id="notifCount">0</span>
-      </a>
+      <a href="notifications.php">Notifikasi</a>
       <a href="upload.php">Kongsi Resepi</a>
       <a href="logout.php" onclick="return confirm('Anda pasti ingin log keluar?')">Log Keluar</a>
     </nav>
   </header>
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const notifCount = document.getElementById("notifCount");
-      const count = 2; // Example count, replace with actual count from server if needed
-      if (count > 0) {
-        notifCount.textContent = count;
-        notifCount.style.display = "inline-block";
-      } else {
-        notifCount.style.display = "none";
-      }
-    });
-  </script>
+
 </body>
 </html>

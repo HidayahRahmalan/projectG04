@@ -1,7 +1,81 @@
 <?php
 session_start();
+include "header.php";
+include "connection.php";
+
 if (!isset($_SESSION['UserID'])) {
-  $_SESSION['UserID'] = 'U00001'; // For testing purposes
+    $_SESSION['UserID'] = 'U00001';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $conn = new mysqli("localhost", "b032210380", "030818060403", "students");
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $title = trim($_POST['title']);
+    $category = isset($_POST['category']) ? implode(', ', $_POST['category']) : '';
+    $description = trim($_POST['description']);
+    $foodType = trim($_POST['foodType']);
+    $post = trim($_POST['post']);
+    $steps = trim($_POST['steps']);
+    $ingredients = trim($_POST['ingredients']);
+    $level = strtoupper(trim($_POST['level']));
+    $userID = $_SESSION['UserID'];
+
+    $validLevels = ['EASY', 'IMMEDIATE', 'HARD'];
+    if (!in_array($level, $validLevels)) {
+        die("Invalid difficulty level selected.");
+    }
+
+    $validTypes = ['LOCAL CUISINE', 'WESTERN CUISINE', 'CHINESE CUISINE', 'JAPANESE OR KOREAN CUISINE', 'DESSERT', 'BEVERAGE', 'OTHER'];
+    if (!in_array($foodType, $validTypes)) {
+        die("Invalid food type selected.");
+    }
+
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        die("Image upload failed.");
+    }
+    $imageData = file_get_contents($_FILES['image']['tmp_name']);
+    if (strlen($imageData) > 1000000) {
+        die("Image too large. Limit 1MB.");
+    }
+
+    if (!isset($_FILES['video']) || $_FILES['video']['error'] !== UPLOAD_ERR_OK) {
+        die("Video upload failed.");
+    }
+    $videoName = basename($_FILES['video']['name']);
+    $videoTmp = $_FILES['video']['tmp_name'];
+    $videoPath = 'uploads/videos/' . $videoName;
+    if (!move_uploaded_file($videoTmp, $videoPath)) {
+        die("Failed to save video.");
+    }
+
+    $stmt1 = $conn->prepare("INSERT INTO FOOD (FoodTitle, FoodCategory, FoodDesc, FoodType, FoodImage) VALUES (?, ?, ?, ?, ?)");
+    $stmt1->bind_param("sssss", $title, $category, $description, $foodType, $imageData);
+    $stmt1->send_long_data(4, $imageData);
+    if (!$stmt1->execute()) {
+        die("Insert FOOD failed: " . $stmt1->error);
+    }
+
+    $foodIDRes = $conn->query("SELECT FoodID FROM FOOD ORDER BY FoodID DESC LIMIT 1");
+    $foodID = $foodIDRes->fetch_assoc()['FoodID'] ?? null;
+    if (!$foodID) {
+        die("Failed to get FoodID.");
+    }
+
+    $stmt2 = $conn->prepare("INSERT INTO RECIPE (RecInstructions, CookVideo, RecIngredients, RecLevel, PostDescription, FoodID, UserID) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt2->bind_param("sssssss", $steps, $videoPath, $ingredients, $level, $post, $foodID, $userID);
+    if (!$stmt2->execute()) {
+        die("Insert RECIPE failed: " . $stmt2->error);
+    }
+
+    $stmt1->close();
+    $stmt2->close();
+    $conn->close();
+
+    echo "<script>alert('Resepi berjaya dimuat naik!'); window.location.href='homepage.php';</script>";
+    exit;
 }
 ?>
 
@@ -26,7 +100,6 @@ if (!isset($_SESSION['UserID'])) {
       background-color: #ff6347;
       color: white;
       padding: 20px;
-      text-align: center;
     }
 
     main {
@@ -83,26 +156,6 @@ if (!isset($_SESSION['UserID'])) {
       font-weight: normal;
     }
 
-    .mic-btn {
-      margin-top: 10px;
-      padding: 8px 15px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .mic-btn:hover {
-      background-color: #218838;
-    }
-
-    #status {
-      font-size: 14px;
-      color: #555;
-      margin-top: 5px;
-    }
-
     button {
       width: 100%;
       padding: 10px;
@@ -118,6 +171,12 @@ if (!isset($_SESSION['UserID'])) {
       background-color: #e5533d;
     }
 
+    #voice-status {
+      font-style: italic;
+      color: green;
+      margin-top: 5px;
+    }
+
     footer {
       background-color: #333;
       color: white;
@@ -127,14 +186,11 @@ if (!isset($_SESSION['UserID'])) {
   </style>
 </head>
 <body>
-  <header>
-    <h1>ResepiKu - Kongsi Resepi</h1>
-  </header>
 
   <main>
     <div class="form-container">
       <h2>Kongsi Resepi Anda</h2>
-      <form method="POST" action="upload_recipe_process.php" enctype="multipart/form-data">
+      <form method="POST" enctype="multipart/form-data">
         <label for="title">Tajuk Resepi</label>
         <input type="text" id="title" name="title" required>
 
@@ -172,8 +228,8 @@ if (!isset($_SESSION['UserID'])) {
 
         <label for="steps">Langkah Memasak</label>
         <textarea id="steps" name="steps" rows="5" required></textarea>
-        <button type="button" class="mic-btn" onclick="startVoiceInput()">🎤 Mulakan Input Suara</button>
-        <p id="status">Status: Belum dimulakan</p>
+        <button type="button" onclick="startVoiceInput()" style="margin-top:10px; background-color:#28a745;">🎤 Mula Rakaman Suara</button>
+        <p id="voice-status"></p>
 
         <label for="video">Video Tutorial</label>
         <input type="file" id="video" name="video" accept="video/*" required>
@@ -184,9 +240,9 @@ if (!isset($_SESSION['UserID'])) {
         <label for="level">Tahap Kesukaran</label>
         <select id="level" name="level" required>
           <option value="">-- Pilih Tahap --</option>
-          <option value="EASY">Mudah</option>
-          <option value="IMMEDIATE">Sederhana</option>
-          <option value="HARD">Sukar</option>
+          <option value="easy">Mudah</option>
+          <option value="immediate">Sederhana</option>
+          <option value="hard">Sukar</option>
         </select>
 
         <button type="submit">Kongsi Resepi</button>
@@ -199,54 +255,43 @@ if (!isset($_SESSION['UserID'])) {
   </footer>
 
   <script>
-    let recognition;
-    let isListening = false;
-
     function startVoiceInput() {
-      const stepsField = document.getElementById("steps");
-      const statusField = document.getElementById("status");
+      const textarea = document.getElementById('steps');
+      const status = document.getElementById('voice-status');
 
       if (!('webkitSpeechRecognition' in window)) {
-        alert("Browser anda tidak menyokong input suara.");
+        alert("Browser anda tidak menyokong rakaman suara. Sila guna Google Chrome.");
         return;
       }
 
-      if (!recognition) {
-        recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ms-MY';
-        recognition.continuous = true;
-        recognition.interimResults = false;
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ms-MY';
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
-        recognition.onresult = function (event) {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript + " ";
+      recognition.onstart = () => {
+        status.textContent = "🎙️ Merakam suara...";
+      };
+
+      recognition.onerror = (event) => {
+        status.textContent = "❌ Ralat: " + event.error;
+      };
+
+      recognition.onend = () => {
+        status.textContent = "✅ Rakaman tamat.";
+      };
+
+      recognition.onresult = (event) => {
+        let final = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final += event.results[i][0].transcript + "\n";
           }
-          stepsField.value += (stepsField.value ? "\n" : "") + transcript.trim();
-          statusField.textContent = "Input suara berjaya dimasukkan.";
-        };
+        }
+        textarea.value += final;
+      };
 
-        recognition.onerror = function (event) {
-          statusField.textContent = "Ralat: " + event.error;
-        };
-
-        recognition.onend = function () {
-          if (isListening) {
-            statusField.textContent = "Sesi tamat. Klik semula untuk teruskan.";
-            isListening = false;
-          }
-        };
-      }
-
-      if (!isListening) {
-        recognition.start();
-        isListening = true;
-        statusField.textContent = "🎙️ Mula bercakap...";
-      } else {
-        recognition.stop();
-        isListening = false;
-        statusField.textContent = "🔇 Input suara dihentikan.";
-      }
+      recognition.start();
     }
   </script>
 </body>

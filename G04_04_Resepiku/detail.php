@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
     $userID = $_SESSION['UserID'] ?? null;
 
     if (!$userID) {
-        echo "<script>alert('Sila log masuk terlebih dahulu.'); window.location.href='login.html';</script>";
+        echo "<script>alert('Sila log masuk terlebih dahulu.'); window.location.href='index.php';</script>";
         exit;
     }
 
@@ -28,13 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
     $videoPath = null;
     $commentType = '';
 
-    // Handle image
+    // Handle image upload
     if (isset($_FILES['image']) && $_FILES['image']['size'] > 0) {
         $imageData = file_get_contents($_FILES['image']['tmp_name']);
         $commentType .= 'Image ';
     }
 
-    // Handle video
+    // Handle video upload
     if (isset($_FILES['video']) && $_FILES['video']['size'] > 0) {
         $videoName = uniqid('vid_') . "_" . basename($_FILES['video']['name']);
         $targetVideo = "uploads/" . $videoName;
@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
 
     if ($commentType === '') $commentType = 'Text';
 
+    // Insert feedback into database
     $stmt = $conn->prepare("INSERT INTO FEEDBACK (FeedbackID, CommentType, Comment, VideoAttachment, ImageAttachment, UserID, RecipeID) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssss", $newID, $commentType, $comment, $videoPath, $imageData, $userID, $recipeID);
 
@@ -57,22 +58,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && isset($
 }
 
 // ---------- DISPLAY RECIPE DETAILS ----------
-$recipeID = $_GET['id'] ?? null;
+$id = $_GET['id'] ?? null;
 
-if ($recipeID) {
+if ($id) {
     $sql = "
         SELECT 
             FOOD.FoodTitle, FOOD.FoodCategory, FOOD.FoodDesc, FOOD.FoodType, FOOD.FoodImage,
             RECIPE.RecInstructions, RECIPE.RecIngredients, RECIPE.RecLevel, RECIPE.CookVideo,
-            USER.FullName
+            USER.FullName, RECIPE.RecipeID
         FROM RECIPE
         JOIN FOOD ON RECIPE.FoodID = FOOD.FoodID
         JOIN USER ON RECIPE.UserID = USER.UserID
-        WHERE RECIPE.RecipeID = ?
+        WHERE RECIPE.RecipeID = ? OR FOOD.FoodID = ?
         LIMIT 1
     ";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $recipeID);
+    $stmt->bind_param("ss", $id, $id);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -123,7 +124,10 @@ if ($recipeID) {
   <div class="section">
     <h3>Video Penyediaan</h3>
     <div class="video-container">
-      <iframe src="<?= htmlspecialchars($data['CookVideo']) ?>" frameborder="0" allowfullscreen></iframe>
+      <video controls style="max-width:100%;">
+        <source src="<?= htmlspecialchars($data['CookVideo']) ?>" type="video/mp4">
+        Video tidak disokong pada pelayar anda.
+      </video>
     </div>
   </div>
   <?php endif; ?>
@@ -138,14 +142,15 @@ if ($recipeID) {
     <p><strong><?= htmlspecialchars($data['FullName']) ?></strong></p>
   </div>
 
-  <!-- Feedback Section -->
+  <!-- Bahagian Maklum Balas Pengguna -->
   <div class="feedback-section" style="margin-top: 30px;">
     <h3>Komen / Maklum Balas</h3>
 
     <?php if (isset($_SESSION['UserID'])): ?>
+    <!-- Borang penghantaran komen jika pengguna telah log masuk -->
     <form method="POST" action="" enctype="multipart/form-data" class="comment-form" style="margin-bottom: 30px;">
       <textarea name="comment" rows="4" placeholder="Tulis komen anda di sini..." required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
-      <input type="hidden" name="recipeID" value="<?= htmlspecialchars($_GET['id']) ?>" />
+      <input type="hidden" name="recipeID" value="<?= htmlspecialchars($data['RecipeID']) ?>" />
       
       <div style="margin-top: 10px;">
         <label>Tambah Gambar:</label><br>
@@ -173,7 +178,7 @@ if ($recipeID) {
         WHERE F.RecipeID = ?
         ORDER BY F.ComDateTime DESC
       ");
-      $feedbackQuery->bind_param("s", $recipeID);
+      $feedbackQuery->bind_param("s", $data['RecipeID']);
       $feedbackQuery->execute();
       $feedbackResult = $feedbackQuery->get_result();
 
@@ -208,6 +213,7 @@ if ($recipeID) {
 <?php include 'footer.php'; ?>
 
 <style>
+/* Gaya komen */
 .comment {
   background-color: #f4f4f4;
   border-left: 4px solid #0077cc;
@@ -215,6 +221,7 @@ if ($recipeID) {
   margin-bottom: 20px;
   border-radius: 6px;
 }
+
 .comment-list h4 {
   margin-bottom: 15px;
 }
