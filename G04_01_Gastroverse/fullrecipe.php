@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_content']) &&
         $stmt = $pdo->prepare("INSERT INTO comment (User_ID, Recipe_ID, Comment_Date, Comment_Content) VALUES (?, ?, CURDATE(), ?)");
         $stmt->execute([$user_id, $recipeId, $content]);
         // Redirect to prevent form resubmission and before any output
-        header("Location: fullrecipe.php?recipe_id=" . $recipeId);
+         echo "<script>window.location.href = 'fullrecipe.php?recipe_id=" . $recipeId . "';</script>";
         exit;
     }
 }
