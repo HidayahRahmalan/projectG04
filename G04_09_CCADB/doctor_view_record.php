@@ -3,25 +3,22 @@ session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Doctor') { header("Location: login.php"); exit(); }
 require_once 'db_conn.php';
 
-// Check if a record ID is provided
 if (!isset($_GET['record_id'])) {
-    // A fallback redirect might be needed here, e.g., to the doctor's dashboard
     header("Location: doctor_dashboard.php");
     exit();
 }
 $record_id = intval($_GET['record_id']);
 
-// Fetch the medical record details along with patient and appointment info
+// Updated SQL to get all details needed for the page and the PDF
 $sql = "SELECT 
-            mr.Diagnosis, 
-            mr.Notes, 
-            mr.RecordDate,
-            a.AppointmentDate,
-            p.PatientID,
-            p.Name as PatientName
+            mr.Diagnosis, mr.Notes, mr.RecordDate,
+            a.AppointmentNo, a.AppointmentDate,
+            p.PatientID, p.Name as PatientName,
+            mc.StartDate as MC_StartDate, mc.NumberOfDays as MC_Days, mc.Reason as MC_Reason, mc.ImagePath as MC_ImagePath
         FROM MedicalRecord mr
         JOIN Appointment a ON mr.AppointmentID = a.AppointmentNo
         JOIN Patient p ON a.PatientID = p.PatientID
+        LEFT JOIN MedicalCertificate mc ON a.AppointmentNo = mc.AppointmentID
         WHERE mr.RecordID = ?";
 
 $stmt = $conn->prepare($sql);
@@ -39,33 +36,34 @@ $record = $result->fetch_assoc();
 <head>
     <meta charset="UTF-8">
     <title>View Medical Record</title>
+    <!-- Link to the correct stylesheet -->
     <link rel="stylesheet" href="css/admin_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Add some specific styles for this page */
+        /* Specific styles for this page's content */
         .record-details {
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 25px;
+            background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; 
+            padding: 25px; margin-bottom: 20px;
         }
         .record-details h3 {
-            margin-top: 0;
-            border-bottom: 2px solid #e0f2f1;
-            padding-bottom: 10px;
+            margin-top: 0; border-bottom: 2px solid #e0f2f1; padding-bottom: 10px;
         }
-        .record-details p {
-            line-height: 1.6;
-            white-space: pre-wrap; /* This preserves line breaks in the notes */
-        }
+        .record-details p { line-height: 1.6; white-space: pre-wrap; }
     </style>
 </head>
 <body>
+
+<!-- ============================================================== -->
+<!-- THE FIX IS HERE: The page now has the correct wrapper and sidebar structure -->
+<!-- ============================================================== -->
 <div class="admin-wrapper">
-    <?php $active_page = 'patients'; include 'doctor_sidebar.php'; ?>
+    <?php 
+        $active_page = 'patients'; // Keep "My Patients" active in the sidebar
+        include 'doctor_sidebar.php'; 
+    ?>
     <main class="admin-main-content">
         <header class="main-header">
             <h1>Medical Record Details</h1>
-            <!-- This link takes the doctor back to the specific patient's history page -->
             <a href="doctor_view_patient.php?patient_id=<?php echo $record['PatientID']; ?>" class="back-button" style="text-decoration:none;">← Back to <?php echo htmlspecialchars($record['PatientName']); ?>'s History</a>
         </header>
 
@@ -75,13 +73,29 @@ $record = $result->fetch_assoc();
                     <h3>Diagnosis</h3>
                     <p><?php echo nl2br(htmlspecialchars($record['Diagnosis'])); ?></p>
                 </div>
-
-                <div class="record-details" style="margin-top: 20px;">
+                <div class="record-details">
                     <h3>Consultation Notes</h3>
                     <p><?php echo $record['Notes'] ? nl2br(htmlspecialchars($record['Notes'])) : '<em>No additional notes were recorded.</em>'; ?></p>
                 </div>
                 
-                <div class="record-details" style="margin-top: 20px; background-color: transparent; border: none; padding: 0;">
+                <?php if (!is_null($record['MC_StartDate'])): ?>
+                    <div class="record-details">
+                        <h3>Medical Certificate (MC) Details</h3>
+                        <p><strong>Start Date:</strong> <?php echo date('d M Y', strtotime($record['MC_StartDate'])); ?></p>
+                        <p><strong>Number of Days:</strong> <?php echo htmlspecialchars($record['MC_Days']); ?></p>
+                        <p><strong>Reason:</strong> <?php echo htmlspecialchars($record['MC_Reason']); ?></p>
+                        
+                        <div style="margin-top: 20px;">
+                            <?php if (!is_null($record['MC_ImagePath'])): ?>
+                                <a href="<?php echo htmlspecialchars($record['MC_ImagePath']); ?>" class="action-btn" download>Download Uploaded MC</a>
+                            <?php else: ?>
+                                <a href="generate_mc_pdf.php?appt_id=<?php echo $record['AppointmentNo']; ?>" target="_blank" class="action-btn">Print/Download MC</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <div style="margin-top: 20px; padding: 10px; color: #555;">
                     <p><strong>Appointment Date:</strong> <?php echo date('d M Y, g:i A', strtotime($record['AppointmentDate'])); ?></p>
                     <p><strong>Record Created On:</strong> <?php echo date('d M Y, g:i A', strtotime($record['RecordDate'])); ?></p>
                 </div>

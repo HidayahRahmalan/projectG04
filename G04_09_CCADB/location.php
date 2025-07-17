@@ -24,7 +24,6 @@ require_once 'db_conn.php';
       <h1>Find a Registered Clinic</h1>
     </div>
     <div class="header-right">
-      <!-- FIX #1 -->
       <a href="login.php" class="login-button">Login</a>
     </div>
   </header>
@@ -34,7 +33,6 @@ require_once 'db_conn.php';
     <a href="index.php">Home</a>
     <a href="location.php" class="active">Find Clinic</a>
     <a href="appointment.php">Appointments</a>
-    <!-- FIX #2 -->
     <a href="login.php">Medical Records</a>
     <a href="#">Contact Us</a>
   </div>
@@ -61,7 +59,7 @@ require_once 'db_conn.php';
             if ($result->num_rows > 0) {
               while($row = $result->fetch_assoc()) {
                 echo "<tr>";
-                echo "<td>" . htmlspecialchars($row["ClinicName"]) . "</td>";
+                echo '<td><a href="view_clinic_profile.php?id=' . $row["ClinicID"] . '">' . htmlspecialchars($row["ClinicName"]) . '</a></td>';
                 echo "<td>" . htmlspecialchars($row["Location"]) . "</td>";
                 echo "<td>" . htmlspecialchars($row["Phone"]) . "</td>";
                 echo '<td><a href="appointment.php?clinic_id=' . $row["ClinicID"] . '" class="select-btn">Select</a></td>';

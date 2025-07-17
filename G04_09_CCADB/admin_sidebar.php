@@ -12,7 +12,6 @@ $active_page = $active_page ?? '';
             <li><a href="admin_dashboard.php" class="<?php echo ($active_page == 'dashboard') ? 'active' : ''; ?>">Dashboard</a></li>
             <li><a href="admin_manage_appointments.php" class="<?php echo ($active_page == 'appointments') ? 'active' : ''; ?>">Manage Appointments</a></li>
             <li><a href="admin_manage_doctors.php" class="<?php echo ($active_page == 'doctors') ? 'active' : ''; ?>">Manage Doctors</a></li>
-            <!-- This is the corrected line for Manage Patients -->
             <li><a href="admin_manage_patients.php" class="<?php echo ($active_page == 'patients') ? 'active' : ''; ?>">Manage Patients</a></li>
             <li><a href="#" class="<?php echo ($active_page == 'clinics') ? 'active' : ''; ?>">Manage Clinics</a></li>
         </ul>
