@@ -174,6 +174,7 @@
     <h1>ResepiKu</h1>
     </a>
     <nav>
+      <a href="resume.html">Resume Kami</a>
       <a href="register.php">Daftar</a>
     </nav>
   </header>
