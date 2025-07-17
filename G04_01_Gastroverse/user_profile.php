@@ -17,7 +17,7 @@ if (!$user) {
     // User ID in session doesn't match any database record
     unset($_SESSION['UserID']); // Clear invalid session
     $_SESSION['error'] = "User account not found - please login again";
-    header("Location: /G04_01_Gastroverse/login.php");
+    echo "<script>window.location.href = '/G04_01_Gastroverse/login.php';</script>";
     exit();
 }
 
