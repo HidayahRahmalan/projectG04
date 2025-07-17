@@ -8,7 +8,7 @@ if (!isset($_SESSION['UserID'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = new mysqli("localhost", "b032210380", "030818060403", "students");
+    $conn = new mysqli("localhost", "resepiku", "123456", "p25_resepiku");
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
